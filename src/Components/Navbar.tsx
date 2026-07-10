@@ -16,6 +16,7 @@ import {
   Globe
 } from "lucide-react";
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaYoutube } from "react-icons/fa";
+import { authClient } from "@/lib/auth-client";
 
 interface DropdownItem {
   label: string;
@@ -54,15 +55,12 @@ const languageItems: DropdownItem[] = [
   { label: "🇪🇸 Español", href: "#" },
 ];
 
-export default function Navbar({ 
-  isLoggedIn = false, 
-  user = { name: "John Doe", email: "john@example.com", image: "" }, 
-  onLogout 
+export default function Navbar({
 }: NavbarProps) {
   // Mobile & Desktop State Management
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [profileOpen, setProfileOpen] = useState<boolean>(false);
-  
+
   // Desktop Hover States
   const [sustainOpen, setSustainOpen] = useState<boolean>(false);
   const [toursOpen, setToursOpen] = useState<boolean>(false);
@@ -75,10 +73,21 @@ export default function Navbar({
 
   const pathname = usePathname();
   const isActive = (href: string) => pathname === href;
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  console.log("Navbar session user:", user);
+
+  const HandleSignOut = async () => {
+    try {
+      await authClient.signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
     <div className="w-full font-sans sticky top-0 z-50 shadow-sm bg-white">
-      
+
       {/* ---------- 1. TOP UTILITY BAR (Hidden on Mobile) ---------- */}
       <div className="w-full bg-blue-600 text-white text-sm hidden lg:block">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-2">
@@ -140,7 +149,7 @@ export default function Navbar({
       {/* ---------- 2. MAIN NAVBAR ---------- */}
       <nav className="w-full bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
-          
+
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0">
             <span className="text-2xl sm:text-3xl font-extrabold text-blue-600 select-none" style={{ fontFamily: "'Comic Sans MS', cursive" }}>
@@ -150,7 +159,7 @@ export default function Navbar({
 
           {/* Desktop Nav Links (Hidden on Mobile) */}
           <div className="hidden lg:flex items-center gap-8 text-gray-800 font-medium">
-            
+
             {/* Tours dropdown */}
             <div className="relative" onMouseEnter={() => setToursOpen(true)} onMouseLeave={() => setToursOpen(false)}>
               <button className="flex items-center gap-1 hover:text-blue-600 transition py-2">
@@ -209,7 +218,7 @@ export default function Navbar({
             </Link>
 
             {/* CONDITIONAL AUTH SECTION */}
-            {isLoggedIn ? (
+            {user ? (
               /* Profile Image & Dropdown */
               <div className="relative" onMouseEnter={() => setProfileOpen(true)} onMouseLeave={() => setProfileOpen(false)}>
                 <button className="flex items-center gap-1 focus:outline-none py-2">
@@ -235,7 +244,7 @@ export default function Navbar({
                       <Settings size={16} /> Settings
                     </Link>
                     <div className="border-t border-gray-100 my-1"></div>
-                    <button onClick={onLogout} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium transition-colors">
+                    <button onClick={HandleSignOut} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium transition-colors">
                       <LogOut size={16} /> Logout
                     </button>
                   </div>
@@ -278,13 +287,13 @@ export default function Navbar({
 
           {/* Floating Dropdown Box */}
           <div className="fixed right-4 top-16 z-50 w-[290px] max-h-[80vh] overflow-y-auto rounded-xl border border-gray-100 bg-white p-4 shadow-xl transition-all duration-300 ease-in-out lg:hidden animate-in fade-in slide-in-from-top-4 duration-200">
-            
+
             {/* Mobile Nav Links Group */}
             <div className="flex flex-col gap-1">
-              
+
               {/* Accordion 1: Tours */}
               <div>
-                <button 
+                <button
                   onClick={() => setMobileToursOpen(!mobileToursOpen)}
                   className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
                 >
@@ -308,7 +317,7 @@ export default function Navbar({
 
               {/* Accordion 2: Destination */}
               <div>
-                <button 
+                <button
                   onClick={() => setMobileDestOpen(!mobileDestOpen)}
                   className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
                 >
@@ -338,13 +347,13 @@ export default function Navbar({
 
             {/* Mobile Action Buttons Footer */}
             <div className="mt-3 border-t border-gray-100 pt-3 flex flex-col gap-2">
-              
+
               <Link href="#plan-trip" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-blue-600 text-white text-center text-xs font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
                 Plan A Trip Here
               </Link>
 
               {/* MOBILE CONDITIONAL AUTH */}
-              {isLoggedIn ? (
+              {user ? (
                 <div className="bg-gray-50 rounded-xl p-2.5 mt-1 border border-gray-100">
                   <div className="flex items-center gap-2 mb-2 px-1">
                     {user.image ? (
@@ -359,8 +368,8 @@ export default function Navbar({
                       <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => { setIsMobileMenuOpen(false); onLogout?.(); }}
+                  <button
+                    onClick={() => { setIsMobileMenuOpen(false); HandleSignOut(); }}
                     className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
                   >
                     <LogOut size={14} /> Logout
