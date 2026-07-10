@@ -1,176 +1,386 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, Plane } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  Search,
+  ChevronDown,
+  Menu,
+  X,
+  User,
+  LogOut,
+  Settings,
+  Globe
+} from "lucide-react";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter, FaYoutube } from "react-icons/fa";
+
+interface DropdownItem {
+  label: string;
+  href: string;
+}
 
 interface NavbarProps {
   isLoggedIn?: boolean;
+  user?: {
+    name: string;
+    email: string;
+    image?: string;
+  };
   onLogout?: () => void;
 }
 
-const loggedOutLinks = [
-  { label: "Home", href: "/" },
-  { label: "Explore", href: "/explore" },
+const toursItems: DropdownItem[] = [
+  { label: "Machu Picchu Tours", href: "#" },
+  { label: "Amazon Tours", href: "#" },
+  { label: "Cusco Tours", href: "#" },
 ];
 
-const loggedInLinks = [
-  { label: "Home", href: "/" },
-  { label: "Explore", href: "/explore" },
-  { label: "Add Listing", href: "/listings/add" },
-  { label: "My Listings", href: "/listings/manage" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+const destinationItems: DropdownItem[] = [
+  { label: "Cusco", href: "#" },
+  { label: "Sacred Valley", href: "#" },
+  { label: "Huacachina", href: "#" },
 ];
 
-export default function Navbar({ isLoggedIn = false, onLogout }: NavbarProps) {
-  const [isOpen, setIsOpen] = useState(false);
+const sustainabilityItems: DropdownItem[] = [
+  { label: "Our Commitment", href: "#" },
+  { label: "Community Projects", href: "#" },
+];
+
+const languageItems: DropdownItem[] = [
+  { label: "🇬🇧 English", href: "#" },
+  { label: "🇪🇸 Español", href: "#" },
+];
+
+export default function Navbar({ 
+  isLoggedIn = false, 
+  user = { name: "John Doe", email: "john@example.com", image: "" }, 
+  onLogout 
+}: NavbarProps) {
+  // Mobile & Desktop State Management
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [profileOpen, setProfileOpen] = useState<boolean>(false);
+  
+  // Desktop Hover States
+  const [sustainOpen, setSustainOpen] = useState<boolean>(false);
+  const [toursOpen, setToursOpen] = useState<boolean>(false);
+  const [destOpen, setDestOpen] = useState<boolean>(false);
+  const [langOpen, setLangOpen] = useState<boolean>(false);
+
+  // Mobile Accordion States
+  const [mobileToursOpen, setMobileToursOpen] = useState<boolean>(false);
+  const [mobileDestOpen, setMobileDestOpen] = useState<boolean>(false);
+
   const pathname = usePathname();
-
-  const links = isLoggedIn ? loggedInLinks : loggedOutLinks;
-
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname?.startsWith(href);
+  const isActive = (href: string) => pathname === href;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white shadow-sm border-b border-gray-100">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0F6BA8] transition-transform hover:scale-105">
-            <Plane className="h-5 w-5 text-white" strokeWidth={2.2} />
-          </span>
-          <span className="text-lg font-bold text-[#0B4F80]">
-            Travel<span className="text-[#F4A340]">Explorer</span>
-          </span>
-        </Link>
+    <div className="w-full font-sans sticky top-0 z-50 shadow-sm bg-white">
+      
+      {/* ---------- 1. TOP UTILITY BAR (Hidden on Mobile) ---------- */}
+      <div className="w-full bg-blue-600 text-white text-sm hidden lg:block">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-2">
+          {/* Contact info */}
+          <div className="flex items-center gap-6">
+            <a href="https://wa.me/51980538470" className="flex items-center gap-2 hover:opacity-80 transition">
+              <Phone size={14} />
+              <span>+51 980 538 470</span>
+            </a>
+            <a href="mailto:info@travelbuddiesperu.com" className="flex items-center gap-2 hover:opacity-80 transition">
+              <Mail size={14} />
+              <span>info@travelbuddiesperu.com</span>
+            </a>
+          </div>
 
-        {/* Desktop Links */}
-        <div className="hidden items-center gap-1 md:flex">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                isActive(link.href)
-                  ? "text-[#0F6BA8] font-semibold bg-[#E5F1FA]/50"
-                  : "text-[#1F2937] hover:text-[#0F6BA8] hover:bg-gray-50"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
+          {/* Links + socials */}
+          <div className="flex items-center gap-6">
+            <Link href="#" className="hover:opacity-80 transition">About</Link>
+            <Link href="#" className="hover:opacity-80 transition">Blog</Link>
+            <Link href="#" className="hover:opacity-80 transition">Reviews</Link>
+            <Link href="#" className="hover:opacity-80 transition">Contact Us</Link>
 
-        {/* Desktop Right Side */}
-        <div className="hidden items-center gap-3 md:flex">
-          {isLoggedIn ? (
-            <button
-              onClick={onLogout}
-              className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-[#6B7280] transition-colors hover:border-[#DC2626] hover:text-[#DC2626]"
+            {/* Sustainability dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setSustainOpen(true)}
+              onMouseLeave={() => setSustainOpen(false)}
             >
-              Logout
+              <button className="flex items-center gap-1 hover:opacity-80 transition">
+                Sustainability <ChevronDown size={14} />
+              </button>
+              {sustainOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white text-gray-700 rounded-md shadow-lg py-2 z-50 border border-gray-100">
+                  {sustainabilityItems.map((item) => (
+                    <Link key={item.label} href={item.href} className="block px-4 py-2 text-sm hover:bg-gray-50 transition-colors">
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button aria-label="Search" className="hover:opacity-80 transition">
+              <Search size={16} />
             </button>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="rounded-md px-4 py-2 text-sm font-medium text-[#0F6BA8] transition-colors hover:bg-[#E5F1FA]"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-md bg-[#F4A340] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#D9861F] shadow-sm"
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          onClick={() => setIsOpen((prev) => !prev)}
-          className="inline-flex items-center justify-center rounded-md p-2 text-[#1F2937] hover:bg-gray-100 hover:text-[#0F6BA8] md:hidden transition-colors"
-          aria-label="Toggle menu"
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+            <div className="flex items-center gap-3">
+              <a href="#" aria-label="Instagram" className="hover:opacity-80 transition"><FaInstagram size={16} /></a>
+              <a href="#" aria-label="TikTok" className="hover:opacity-80 transition"><span className="text-[13px] font-bold">TT</span></a>
+              <a href="#" aria-label="Facebook" className="hover:opacity-80 transition"><FaFacebook size={16} /></a>
+              <a href="#" aria-label="YouTube" className="hover:opacity-80 transition"><FaYoutube size={16} /></a>
+              <a href="#" aria-label="LinkedIn" className="hover:opacity-80 transition"><FaLinkedin size={16} /></a>
+              <a href="#" aria-label="X" className="hover:opacity-80 transition"><FaTwitter size={16} /></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------- 2. MAIN NAVBAR ---------- */}
+      <nav className="w-full bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+          
+          {/* Logo */}
+          <Link href="/" className="flex items-center shrink-0">
+            <span className="text-2xl sm:text-3xl font-extrabold text-blue-600 select-none" style={{ fontFamily: "'Comic Sans MS', cursive" }}>
+              Travel Buddies
+            </span>
+          </Link>
+
+          {/* Desktop Nav Links (Hidden on Mobile) */}
+          <div className="hidden lg:flex items-center gap-8 text-gray-800 font-medium">
+            
+            {/* Tours dropdown */}
+            <div className="relative" onMouseEnter={() => setToursOpen(true)} onMouseLeave={() => setToursOpen(false)}>
+              <button className="flex items-center gap-1 hover:text-blue-600 transition py-2">
+                Tours <ChevronDown size={16} />
+              </button>
+              {toursOpen && (
+                <div className="absolute left-0 top-full mt-0 w-56 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {toursItems.map((item) => (
+                    <Link key={item.label} href={item.href} className="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700 hover:text-blue-600 transition-colors">
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link href="#" className="hover:text-blue-600 transition">Peru Packages</Link>
+
+            {/* Destination dropdown */}
+            <div className="relative" onMouseEnter={() => setDestOpen(true)} onMouseLeave={() => setDestOpen(false)}>
+              <button className="flex items-center gap-1 hover:text-blue-600 transition py-2">
+                Destination <ChevronDown size={16} />
+              </button>
+              {destOpen && (
+                <div className="absolute left-0 top-full mt-0 w-56 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {destinationItems.map((item) => (
+                    <Link key={item.label} href={item.href} className="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700 hover:text-blue-600 transition-colors">
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Language selector */}
+            <div className="relative" onMouseEnter={() => setLangOpen(true)} onMouseLeave={() => setLangOpen(false)}>
+              <button className="flex items-center gap-2 hover:text-blue-600 transition py-2">
+                🇬🇧 English <ChevronDown size={16} />
+              </button>
+              {langOpen && (
+                <div className="absolute left-0 top-full mt-0 w-36 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {languageItems.map((item) => (
+                    <Link key={item.label} href={item.href} className="block px-4 py-2 text-sm hover:bg-gray-50 text-gray-700 transition-colors">
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Right Side Actions (Auth + CTA) */}
+          <div className="hidden lg:flex items-center gap-4">
+            <Link href="#plan-trip" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-lg transition text-sm shadow-sm">
+              Plan A Trip Here
+            </Link>
+
+            {/* CONDITIONAL AUTH SECTION */}
+            {isLoggedIn ? (
+              /* Profile Image & Dropdown */
+              <div className="relative" onMouseEnter={() => setProfileOpen(true)} onMouseLeave={() => setProfileOpen(false)}>
+                <button className="flex items-center gap-1 focus:outline-none py-2">
+                  {user.image ? (
+                    <img src={user.image} alt={user.name} className="h-9 w-9 rounded-full object-cover border-2 border-blue-500" />
+                  ) : (
+                    <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold border-2 border-blue-500">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </button>
+
+                {profileOpen && (
+                  <div className="absolute right-0 top-full mt-0 w-56 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+                    <Link href="/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors">
+                      <User size={16} /> My Profile
+                    </Link>
+                    <Link href="/settings" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors">
+                      <Settings size={16} /> Settings
+                    </Link>
+                    <div className="border-t border-gray-100 my-1"></div>
+                    <button onClick={onLogout} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium transition-colors">
+                      <LogOut size={16} /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Auth Action Buttons */
+              <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+                <Link href="/login" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+                  Login
+                </Link>
+                <Link href="/register" className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition shadow-sm">
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Menu Toggle Button */}
+          <div className="flex items-center gap-3 lg:hidden">
+            {/* If logged in on mobile, show mini avatar outside the drawer too if desired, or keep it inside */}
+            <button
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
       </nav>
 
       {/* ========================================================= */}
-      {/* FLOATING DROPDOWN MENU SECTION (MOBILE)                   */}
+      {/* 3. MOBILE FLOATING DROPDOWN CARD                           */}
       {/* ========================================================= */}
+      {isMobileMenuOpen && (
+        <>
+          {/* Transparent backdrop layer to close on outer click */}
+          <div className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px] lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
 
-      {/* Background Overlay - transparent রাখা হয়েছে যেন ড্রপডাউন ভাইব আসে */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[2px] md:hidden"
-          onClick={() => setIsOpen(false)}
-        />
+          {/* Floating Dropdown Box */}
+          <div className="fixed right-4 top-16 z-50 w-[290px] max-h-[80vh] overflow-y-auto rounded-xl border border-gray-100 bg-white p-4 shadow-xl transition-all duration-300 ease-in-out lg:hidden animate-in fade-in slide-in-from-top-4 duration-200">
+            
+            {/* Mobile Nav Links Group */}
+            <div className="flex flex-col gap-1">
+              
+              {/* Accordion 1: Tours */}
+              <div>
+                <button 
+                  onClick={() => setMobileToursOpen(!mobileToursOpen)}
+                  className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+                >
+                  <span>Tours</span>
+                  <ChevronDown size={16} className={`transition-transform duration-200 ${mobileToursOpen ? "rotate-180 text-blue-600" : ""}`} />
+                </button>
+                {mobileToursOpen && (
+                  <div className="pl-4 mt-1 flex flex-col gap-1 border-l-2 border-blue-100 ml-3">
+                    {toursItems.map((item) => (
+                      <Link key={item.label} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="rounded-md px-3 py-1.5 text-xs text-gray-600 hover:text-blue-600 hover:bg-gray-50">
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <Link href="#" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+                Peru Packages
+              </Link>
+
+              {/* Accordion 2: Destination */}
+              <div>
+                <button 
+                  onClick={() => setMobileDestOpen(!mobileDestOpen)}
+                  className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+                >
+                  <span>Destination</span>
+                  <ChevronDown size={16} className={`transition-transform duration-200 ${mobileDestOpen ? "rotate-180 text-blue-600" : ""}`} />
+                </button>
+                {mobileDestOpen && (
+                  <div className="pl-4 mt-1 flex flex-col gap-1 border-l-2 border-blue-100 ml-3">
+                    {destinationItems.map((item) => (
+                      <Link key={item.label} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className="rounded-md px-3 py-1.5 text-xs text-gray-600 hover:text-blue-600 hover:bg-gray-50">
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Essential Top Bar Links Moved Here for Mobile Screen */}
+              <div className="border-t border-gray-100 my-2 pt-2 flex flex-col gap-1">
+                <Link href="#" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50">About Us</Link>
+                <Link href="#" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50">Blog</Link>
+                <Link href="#" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50">Reviews</Link>
+                <Link href="#" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50">Contact Us</Link>
+              </div>
+
+            </div>
+
+            {/* Mobile Action Buttons Footer */}
+            <div className="mt-3 border-t border-gray-100 pt-3 flex flex-col gap-2">
+              
+              <Link href="#plan-trip" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-blue-600 text-white text-center text-xs font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
+                Plan A Trip Here
+              </Link>
+
+              {/* MOBILE CONDITIONAL AUTH */}
+              {isLoggedIn ? (
+                <div className="bg-gray-50 rounded-xl p-2.5 mt-1 border border-gray-100">
+                  <div className="flex items-center gap-2 mb-2 px-1">
+                    {user.image ? (
+                      <img src={user.image} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="truncate">
+                      <p className="text-xs font-semibold text-gray-800 truncate">{user.name}</p>
+                      <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => { setIsMobileMenuOpen(false); onLogout?.(); }}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                  >
+                    <LogOut size={14} /> Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg border border-gray-200 py-2 text-center text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    Login
+                  </Link>
+                  <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg bg-orange-500 py-2 text-center text-xs font-semibold text-white hover:bg-orange-600 transition-colors shadow-sm">
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </>
       )}
-
-      {/* Floating Card Panel */}
-      <div
-        className={`fixed right-4 top-20 z-50 w-[260px] rounded-xl border border-gray-100 bg-white p-4 shadow-xl transition-all duration-300 ease-in-out md:hidden ${
-          isOpen
-            ? "visible opacity-100 translate-y-0"
-            : "invisible opacity-0 -translate-y-4 pointer-events-none"
-          }`}
-      >
-        {/* Links */}
-        <div className="flex flex-col gap-1">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setIsOpen(false)}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                isActive(link.href)
-                  ? "bg-[#E5F1FA] text-[#0F6BA8] font-semibold"
-                  : "text-[#1F2937] hover:bg-gray-50 hover:text-[#0F6BA8]"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* Auth Buttons */}
-        <div className="mt-3 border-t border-gray-100 pt-3 flex flex-col gap-2">
-          {isLoggedIn ? (
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                onLogout?.();
-              }}
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-center text-sm font-medium text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors"
-            >
-              Logout
-            </button>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                onClick={() => setIsOpen(false)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-center text-sm font-medium text-[#0F6BA8] hover:bg-[#E5F1FA] transition-colors"
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setIsOpen(false)}
-                className="w-full rounded-lg bg-[#F4A340] px-3 py-2 text-center text-sm font-semibold text-white hover:bg-[#D9861F] transition-colors shadow-sm"
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
+    </div>
   );
 }
