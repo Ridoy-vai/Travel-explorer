@@ -150,6 +150,7 @@ async function uploadToImgBB(file: File): Promise<string> {
 export default function AddPackageForm() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
+  console.log("Logged-in user session:", user?.status, user?.id, user?.name, user?.email, (user as any)?.phone);
 
   const [form, setForm] = useState<PackageFormData>(emptyFormData);
 
@@ -290,11 +291,11 @@ export default function AddPackageForm() {
       toast.error("Please upload a cover image.");
       return;
     }
-
+    const status = user.status === "approved" ? "published" : "unpublished";
     // status is always "published" — the backend enforces this too.
     const payload = {
       ...form,
-      status: "published",
+      status,
       coverImage,
       galleryImages,
       itinerary,
@@ -307,7 +308,7 @@ export default function AddPackageForm() {
       agencyEmail: user.email,
       agencyPhone: (user as any).phone,
     };
-console.log("Submitting package payload:", payload);
+    console.log("Submitting package payload:", payload);
     setSubmitting(true);
     const toastId = toast.loading("Publishing package...");
     try {
@@ -322,13 +323,13 @@ console.log("Submitting package payload:", payload);
       );
 
       const data = await res.json();
-
+      console.log("API response:", data);
       if (!res.ok) {
         throw new Error(data?.message || "Failed to save package");
       }
 
       toast.update(toastId, {
-        render: "Package published successfully!",
+        render:data.status === "published" ? `Package ${data.status} successfully!` : `Package ${data.status} place admin approve your agency!`,
         type: "success",
         isLoading: false,
         autoClose: 3000,

@@ -162,9 +162,9 @@ export default function Navbar({
 
             {/* Tours dropdown */}
             <div className="relative" onMouseEnter={() => setToursOpen(true)} onMouseLeave={() => setToursOpen(false)}>
-              <button className="flex items-center gap-1 hover:text-blue-600 transition py-2">
+              <Link href="/tours" className="flex items-center gap-1 hover:text-blue-600 transition py-2">
                 Tours <ChevronDown size={16} />
-              </button>
+              </Link>
               {toursOpen && (
                 <div className="absolute left-0 top-full mt-0 w-56 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
                   {toursItems.map((item) => (

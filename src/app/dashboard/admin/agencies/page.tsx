@@ -1,7 +1,7 @@
 "use client";
 
-import { Chip, Table, Tabs, Button } from "@heroui/react";
-import { useState, useMemo } from "react";
+import { Chip, Table, Tabs, Button, Input } from "@heroui/react";
+import { useState, useEffect, useCallback } from "react";
 
 // অ্যাডমিন প্যানেলের জন্য এজেন্সির টাইপ ডিফাইন
 interface Agency {
@@ -17,7 +17,13 @@ interface Agency {
   createdAt: { $date: string } | string;
 }
 
-// স্ট্যাটাস অনুযায়ী কালার কোড
+interface StatusCounts {
+  pending: number;
+  approved: number;
+  rejected: number;
+}
+
+// স্ট্যাটাস অনুযায়ী কালার কোড
 const statusColorMap: Record<string, "warning" | "success" | "danger"> = {
   pending: "warning",
   approved: "success",
@@ -35,56 +41,93 @@ const columns = [
   { id: "actions", name: "Verification Actions" },
 ];
 
-export default function AdminAgencyVerification() {
-  // স্যাম্পল ডাটা স্টেট (বাস্তব প্রজেক্টে এটি API থেকে আসবে)
-  const [agencies, setAgencies] = useState<Agency[]>([
-    {
-      _id: { $oid: "6a51413047a97e4de49b1706" },
-      name: "programing hero",
-      email: "mdsahariyarridoy@gmail.com",
-      emailVerified: true,
-      role: "agency",
-      phone: "+8801310585062",
-      tradeLicense: "4154564651649845155",
-      operatingRegion: "Bangladesh",
-      status: "pending",
-      createdAt: { $date: "2026-07-10T19:00:00.605Z" }
-    }
-  ]);
+const API_BASE = "http://localhost:2000";
 
-  // Pagination এবং Tab স্টেট
+export default function AdminAgencyVerification() {
+  // মূল ডাটা + মেটা স্টেট
+  const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [statusCounts, setStatusCounts] = useState<StatusCounts>({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Pagination, Tab এবং Search স্টেট
   const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState("pending");
+  const [searchInput, setSearchInput] = useState(""); // ইউজার যা টাইপ করছে
+  const [search, setSearch] = useState(""); // ডিবাউন্স হওয়ার পর আসল সার্চ টার্ম যেটা API তে যাবে
   const rowsPerPage = 5;
 
-  // অ্যাডমিন অ্যাকশন হ্যান্ডলার (সরাসরি স্টেট আপডেট করবে যা পরবর্তীতে API-এর সাথে কানেক্ট করা যাবে)
-  const handleVerify = (id: string, newStatus: "approved" | "rejected") => {
-    setAgencies((prev) =>
-      prev.map((agency) => {
-        const agencyId = typeof agency._id === "object" ? agency._id.$oid : agency._id;
-        if (agencyId === id) {
-          return { ...agency, status: newStatus };
-        }
-        return agency;
-      })
-    );
-    console.log(`Agency ID: ${id} changed status to ${newStatus}`);
+  // সার্চ ইনপুট ডিবাউন্স করা (৪০০ms), যাতে প্রতিটা কি-স্ট্রোকে API কল না হয়
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1); // নতুন সার্চ করলে পেজ ১ এ রিসেট
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // এজেন্সিদের তালিকা fetch করা
+  const fetchAgencies = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams({
+        role: "agency", // এখানে সবসময় শুধু agency আসবে, traveler আসবে না
+        status: activeTab,
+        page: page.toString(),
+        limit: rowsPerPage.toString(),
+      });
+
+      if (search) {
+        params.append("search", search); // email অথবা _id দিয়ে সার্চ
+      }
+
+      const res = await fetch(`${API_BASE}/api/admin/users?${params}`);
+      const result = await res.json();
+
+      if (result.success) {
+        setAgencies(result.data);
+        setStatusCounts(result.statusCounts);
+        setTotalPages(result.meta?.totalPages || 1);
+      } else {
+        setAgencies([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch agencies:", error);
+      setAgencies([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [activeTab, page, search]);
+
+  useEffect(() => {
+    fetchAgencies();
+  }, [fetchAgencies]);
+
+  // অ্যাডমিন অ্যাকশন হ্যান্ডলার — API কল করে status আপডেট করে, তারপর লিস্ট রিফ্রেশ করে
+  const handleVerify = async (id: string, newStatus: "approved" | "rejected") => {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/users/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        // সফল হলে স্থানীয়ভাবে ডাটা রিফ্রেশ করা (তালিকা থেকে আইটেমটা বর্তমান ট্যাব থেকে সরে যাবে)
+        fetchAgencies();
+      } else {
+        console.error("Failed to update status:", result.message);
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
   };
-
-  // ট্যাব অনুযায়ী ফিল্টারিং
-  const filteredAgencies = useMemo(() => {
-    return agencies.filter((agency) => agency.status === activeTab);
-  }, [agencies, activeTab]);
-
-  // টোটাল পেজ সংখ্যা
-  const pages = Math.ceil(filteredAgencies.length / rowsPerPage);
-
-  // কারেন্ট পেজের আইটেম স্লাইস করা
-  const items = useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    return filteredAgencies.slice(start, end);
-  }, [page, filteredAgencies]);
 
   return (
     <div className="w-full p-6 space-y-6">
@@ -93,10 +136,19 @@ export default function AdminAgencyVerification() {
         <p className="text-sm text-gray-500">Review trade licenses and approve or reject travel agencies.</p>
       </div>
 
+      {/* সার্চ বার — email অথবা agency id দিয়ে খোঁজার জন্য */}
+      <div className="max-w-sm">
+        <Input
+          placeholder="Search by email or agency ID..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
+      </div>
+
       {/* HeroUI Tabs ব্যবহার করে স্ট্যাটাস ফিল্টার */}
-      <Tabs 
-        className="w-full" 
-        selectedKey={activeTab} 
+      <Tabs
+        className="w-full"
+        selectedKey={activeTab}
         onSelectionChange={(key) => {
           setActiveTab(key as string);
           setPage(1); // ট্যাব বদলালে পেজ ১ এ যাবে
@@ -105,15 +157,15 @@ export default function AdminAgencyVerification() {
         <Tabs.ListContainer>
           <Tabs.List aria-label="Agency verification tabs">
             <Tabs.Tab id="pending">
-              Pending Requests ({agencies.filter(a => a.status === 'pending').length})
+              Pending Requests ({statusCounts.pending})
               <Tabs.Indicator />
             </Tabs.Tab>
             <Tabs.Tab id="approved">
-              Approved Agencies ({agencies.filter(a => a.status === 'approved').length})
+              Approved Agencies ({statusCounts.approved})
               <Tabs.Indicator />
             </Tabs.Tab>
             <Tabs.Tab id="rejected">
-              Rejected ({agencies.filter(a => a.status === 'rejected').length})
+              Rejected ({statusCounts.rejected})
               <Tabs.Indicator />
             </Tabs.Tab>
           </Tabs.List>
@@ -121,10 +173,10 @@ export default function AdminAgencyVerification() {
 
         {/* Tab Panel এর ভেতরে Table রেন্ডার */}
         <Tabs.Panel className="pt-4" id={activeTab}>
-          <Table 
+          <Table
             aria-label="Admin agency management table"
             bottomContent={
-              pages > 1 ? (
+              totalPages > 1 ? (
                 <div className="flex w-full justify-center gap-2">
                   <Button
                     isDisabled={page === 1}
@@ -135,13 +187,13 @@ export default function AdminAgencyVerification() {
                     Previous
                   </Button>
                   <span className="flex items-center text-sm text-gray-600">
-                    Page {page} of {pages}
+                    Page {page} of {totalPages}
                   </span>
                   <Button
-                    isDisabled={page === pages}
+                    isDisabled={page === totalPages}
                     size="sm"
                     variant="flat"
-                    onPress={() => setPage((p) => Math.min(p + 1, pages))}
+                    onPress={() => setPage((p) => Math.min(p + 1, totalPages))}
                   >
                     Next
                   </Button>
@@ -159,10 +211,16 @@ export default function AdminAgencyVerification() {
                   ))}
                 </Table.Header>
 
-                <Table.Body emptyContent={`No agencies found with '${activeTab}' status.`}>
-                  <Table.Collection items={items}>
+                <Table.Body
+                  emptyContent={
+                    isLoading
+                      ? "Loading..."
+                      : `No agencies found with '${activeTab}' status.`
+                  }
+                >
+                  <Table.Collection items={agencies}>
                     {(agency) => {
-                      const agencyId = typeof agency._id === 'object' ? agency._id.$oid : agency._id;
+                      const agencyId = typeof agency._id === "object" ? agency._id.$oid : agency._id;
                       return (
                         <Table.Row key={agencyId}>
                           {/* Name */}
@@ -203,17 +261,17 @@ export default function AdminAgencyVerification() {
                             <div className="flex items-center gap-2">
                               {agency.status === "pending" && (
                                 <>
-                                  <Button 
-                                    size="sm" 
-                                    color="success" 
+                                  <Button
+                                    size="sm"
+                                    color="success"
                                     className="text-white font-medium"
                                     onPress={() => handleVerify(agencyId, "approved")}
                                   >
                                     Approve
                                   </Button>
-                                  <Button 
-                                    size="sm" 
-                                    color="danger" 
+                                  <Button
+                                    size="sm"
+                                    color="danger"
                                     variant="flat"
                                     onPress={() => handleVerify(agencyId, "rejected")}
                                   >
@@ -222,9 +280,9 @@ export default function AdminAgencyVerification() {
                                 </>
                               )}
                               {agency.status === "approved" && (
-                                <Button 
-                                  size="sm" 
-                                  color="danger" 
+                                <Button
+                                  size="sm"
+                                  color="danger"
                                   variant="bordered"
                                   onPress={() => handleVerify(agencyId, "rejected")}
                                 >
@@ -232,9 +290,9 @@ export default function AdminAgencyVerification() {
                                 </Button>
                               )}
                               {agency.status === "rejected" && (
-                                <Button 
-                                  size="sm" 
-                                  color="success" 
+                                <Button
+                                  size="sm"
+                                  color="success"
                                   variant="bordered"
                                   onPress={() => handleVerify(agencyId, "approved")}
                                 >
