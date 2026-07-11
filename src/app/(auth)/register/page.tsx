@@ -24,6 +24,7 @@ import {
     FaTiktok
 } from "react-icons/fa";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "react-toastify";
 
 interface IRegisterInput {
     role: "traveler" | "agency";
@@ -68,6 +69,8 @@ export default function RegisterForm() {
                 phone: data.phone,
                 tradeLicense: userRole === "agency" ? data.tradeLicense : undefined,
                 operatingRegion: userRole === "agency" ? data.operatingRegion : undefined,
+                // এখানে স্ট্যাটাস লজিকটি যোগ করা হলো
+                status: userRole === "agency" ? "pending" : "active",
             });
 
             if (error) {
@@ -76,8 +79,13 @@ export default function RegisterForm() {
                 return;
             }
 
-            console.log("Registration Successful:", signUpData);
-            alert("Registration successful!");
+            if (!error) {
+                toast.success("Registration successful! Please check your email to verify your account. to login.");
+                reset();
+                window.location.href = "/login"; // Redirect to login page after successful registration
+            }
+
+
         } catch (err) {
             console.error("Unexpected error:", err);
         }

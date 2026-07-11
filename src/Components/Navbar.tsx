@@ -176,7 +176,7 @@ export default function Navbar({
               )}
             </div>
 
-            <Link href="#" className="hover:text-blue-600 transition">Peru Packages</Link>
+            <Link href="/dashboard/agency" className="hover:text-blue-600 transition">Peru Packages</Link>
 
             {/* Destination dropdown */}
             <div className="relative" onMouseEnter={() => setDestOpen(true)} onMouseLeave={() => setDestOpen(false)}>
