@@ -602,13 +602,24 @@ export default function TourPackageDetailsPage({
                     </div>
                   </div>
 
-                  <Button
-                    className="w-full bg-[#C9A227] text-[#12332E] font-semibold hover:bg-[#DBB53B]"
-                    radius="sm"
-                    onPress={handleConfirmBooking}
-                  >
-                    Confirm & Contact Agency
-                  </Button>
+                  <form action={`/api/checkout-sessions`} method="POST">
+                    <input type="hidden" name="packageId" value={id} />
+                    <input type="hidden" name="totalAmount" value={totalPrice} />
+                    <input type="hidden" name="tourName" value={pkg.title} />
+                    <input type="hidden" name="tourDescription" value={pkg.description} />
+                    <input type="hidden" name="childCount" value={childCount} />
+                    <input type="hidden" name="totalChildPrice" value={childrenSubtotal} />
+                    <input type="hidden" name="adultCount" value={adultCount} />
+                    <input type="hidden" name="totalFemale" value={femaleCount} />
+                    <input type="hidden" name="totalMale" value={maleCount} />
+                    <Button
+                      type="submit"
+                      className="w-full bg-[#C9A227] text-[#12332E] font-semibold hover:bg-[#DBB53B]"
+                      radius="sm"
+                    >
+                      Confirm & Contact Agency
+                    </Button>
+                  </form>
 
                   <button
                     type="button"

@@ -75,7 +75,7 @@ export default function Navbar({
   const isActive = (href: string) => pathname === href;
   const { data: session } = authClient.useSession();
   const user = session?.user;
-  console.log("Navbar session user:", user);
+  // console.log("Navbar session user:", user);
 
   const HandleSignOut = async () => {
     try {
