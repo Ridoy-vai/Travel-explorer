@@ -36,10 +36,12 @@ async function saveBooking(payload) {
 }
 
 export default async function Success({ searchParams }) {
-    const session = await auth.api.getSession({
+     const session = await auth.api.getSession({
         headers: await headers(),
     });
+
     const user = session?.user;
+    console.log('Authenticated user:', user);
     const { session_id } = await searchParams
 
     if (!session_id) {
@@ -67,7 +69,7 @@ export default async function Success({ searchParams }) {
 
     const rawPkg = metadata?.packageId ? await getPackageDetails(metadata.packageId) : null
     const pkg = rawPkg?.data ?? rawPkg // handles both {data: {...}} and direct object shapes
-    console.log('Fetched package details:', pkg)
+    const travelerId = user?.id ?? 'N/A'
     const totalPaid = amount_total != null ? (amount_total / 100).toFixed(2) : null
     const invoiceId = typeof payment_intent === 'string' ? payment_intent : payment_intent?.id
     const invoice = session_id?.slice(-12) ?? 'N/A'
@@ -75,7 +77,7 @@ export default async function Success({ searchParams }) {
     if (metadata?.packageId && customerEmail) {
         await saveBooking({
             sessionId: session_id,
-            travelerId: user?.id,
+            travelerId: travelerId,
             invoiceId: invoice,
             packageId: metadata.packageId,
             agencyId: pkg.agencyId,
