@@ -1,9 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { authClient } from "@/lib/auth-client";
+import type { DateValue } from "@internationalized/date";
+import { Time, getLocalTimeZone, today } from "@internationalized/date";
+import {
+  DateField,
+  DateRangePicker,
+  Description,
+  FieldError,
+  Label,
+  RangeCalendar,
+  TimeField,
+} from "@heroui/react";
 import {
   Image as ImageIcon,
   X,
@@ -12,7 +23,7 @@ import {
   Loader2,
   UploadCloud,
   MapPin,
-  Calendar,
+  Calendar as CalendarIcon,
   Users,
   Tag,
   Info,
@@ -25,11 +36,19 @@ import {
 // Notifications: react-toastify
 // Theme: Agency (blue-600) — matches DashboardLayout
 //
-// agencyId/agencyName/agencyEmail/agencyPhone are pulled from
-// authClient.useSession() and sent along with the package data.
+// Trip dates and pickup time are picked separately:
+// - DateRangePicker: date-only (no time), drives durationDays/durationNights
+// - TimeField: pickup time on the start date, does NOT affect duration
+// Duration is NEVER manually entered — always auto-calculated from
+// the picked date range, so it can never mismatch the actual dates.
 // ---------------------------------------------------------
 
 const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "";
+
+type TripDateRange = {
+  start: DateValue;
+  end: DateValue;
+};
 
 interface ItineraryDay {
   day: number;
@@ -43,8 +62,6 @@ interface PackageFormData {
   category: string;
   shortDescription: string;
   description: string;
-  durationDays: string;
-  durationNights: string;
   minGroupSize: string;
   maxGroupSize: string;
   basePrice: string;
@@ -74,8 +91,6 @@ const emptyFormData: PackageFormData = {
   category: "",
   shortDescription: "",
   description: "",
-  durationDays: "",
-  durationNights: "",
   minGroupSize: "",
   maxGroupSize: "",
   basePrice: "",
@@ -85,6 +100,22 @@ const emptyFormData: PackageFormData = {
   transportation: "",
   accommodation: "",
 };
+
+// Pure date-based duration — pickup time never affects this.
+function computeDuration(range: TripDateRange | null) {
+  if (!range) return null;
+
+  const startMs = range.start.toDate(getLocalTimeZone()).setHours(0, 0, 0, 0);
+  const endMs = range.end.toDate(getLocalTimeZone()).setHours(0, 0, 0, 0);
+  const diffMs = endMs - startMs;
+
+  if (diffMs <= 0) return null;
+
+  const nights = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  const days = nights + 1;
+
+  return { nights, days };
+}
 
 // ---- Reusable field wrapper ----
 function Field({
@@ -150,7 +181,6 @@ async function uploadToImgBB(file: File): Promise<string> {
 export default function AddPackageForm() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
-  console.log("Logged-in user session:", user?.status, user?.id, user?.name, user?.email, (user as any)?.phone);
 
   const [form, setForm] = useState<PackageFormData>(emptyFormData);
 
@@ -169,7 +199,22 @@ export default function AddPackageForm() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
 
+  // --- Trip dates (date-only) and pickup time (separate, doesn't affect duration) ---
+  const [tripRange, setTripRange] = useState<TripDateRange | null>(null);
+  const [pickupTime, setPickupTime] = useState<Time | null>(null);
+
   const [submitting, setSubmitting] = useState(false);
+
+  const todayDate = today(getLocalTimeZone());
+
+  const rangeIsInvalid =
+    tripRange != null &&
+    (tripRange.start.compare(todayDate) < 0 || tripRange.end.compare(tripRange.start) <= 0);
+
+  const duration = useMemo(
+    () => (rangeIsInvalid ? null : computeDuration(tripRange)),
+    [tripRange, rangeIsInvalid]
+  );
 
   const updateField = (field: keyof PackageFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -273,6 +318,8 @@ export default function AddPackageForm() {
     setInclusions([""]);
     setExclusions([""]);
     setTags([]);
+    setTripRange(null);
+    setPickupTime(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -291,8 +338,17 @@ export default function AddPackageForm() {
       toast.error("Please upload a cover image.");
       return;
     }
+    if (!tripRange || rangeIsInvalid || !duration) {
+      toast.error("Please select a valid trip start and end date.");
+      return;
+    }
+    if (!pickupTime) {
+      toast.error("Please select a pickup time.");
+      return;
+    }
+
     const status = user.status === "approved" ? "published" : "unpublished";
-    // status is always "published" — the backend enforces this too.
+
     const payload = {
       ...form,
       status,
@@ -302,13 +358,19 @@ export default function AddPackageForm() {
       inclusions: inclusions.filter((i) => i.trim() !== ""),
       exclusions: exclusions.filter((i) => i.trim() !== ""),
       tags,
-      // Agency/user details from the logged-in session
+      tourStartDate: tripRange.start.toString(), // date only, e.g. "2026-08-01"
+      tourEndDate: tripRange.end.toString(),
+      pickupTime: `${pickupTime.hour.toString().padStart(2, "0")}:${pickupTime.minute
+        .toString()
+        .padStart(2, "0")}`, // "07:30"
+      durationDays: duration.days,     // auto-calculated, sent for display convenience
+      durationNights: duration.nights, // server re-derives & verifies this anyway
       agencyId: user.id,
       agencyName: user.name,
       agencyEmail: user.email,
       agencyPhone: (user as any).phone,
     };
-    console.log("Submitting package payload:", payload);
+
     setSubmitting(true);
     const toastId = toast.loading("Publishing package...");
     try {
@@ -323,13 +385,15 @@ export default function AddPackageForm() {
       );
 
       const data = await res.json();
-      console.log("API response:", data);
       if (!res.ok) {
         throw new Error(data?.message || "Failed to save package");
       }
 
       toast.update(toastId, {
-        render:data.status === "published" ? `Package ${data.status} successfully!` : `Package ${data.status} place admin approve your agency!`,
+        render:
+          data.status === "published"
+            ? `Package ${data.status} successfully!`
+            : `Package ${data.status} — waiting for admin to approve your agency!`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -426,51 +490,126 @@ export default function AddPackageForm() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Duration & Group Size">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <Field label="Days">
-                <input
-                  type="number"
-                  min={1}
-                  className={inputClass}
-                  placeholder="3"
-                  value={form.durationDays}
-                  onChange={(e) => updateField("durationDays", e.target.value)}
-                />
-              </Field>
-              <Field label="Nights">
-                <input
-                  type="number"
-                  min={0}
-                  className={inputClass}
-                  placeholder="2"
-                  value={form.durationNights}
-                  onChange={(e) => updateField("durationNights", e.target.value)}
-                />
-              </Field>
-              <Field label="Min Group Size">
-                <div className="relative">
-                  <Users size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <SectionCard
+            title="Duration & Group Size"
+            subtitle="Pick trip dates and pickup time — days & nights are calculated automatically"
+          >
+            <div className="flex flex-col gap-4">
+              <DateRangePicker
+                isRequired
+                endName="tourEndDate"
+                startName="tourStartDate"
+                isInvalid={rangeIsInvalid}
+                minValue={todayDate}
+                value={tripRange}
+                onChange={setTripRange}
+              >
+                <Label className="text-sm font-semibold text-slate-700">
+                  Trip Start & End Date <span className="text-blue-600">*</span>
+                </Label>
+                <DateField.Group fullWidth>
+                  <DateField.Input slot="start">
+                    {(segment) => <DateField.Segment segment={segment} />}
+                  </DateField.Input>
+                  <DateRangePicker.RangeSeparator />
+                  <DateField.Input slot="end">
+                    {(segment) => <DateField.Segment segment={segment} />}
+                  </DateField.Input>
+                  <DateField.Suffix>
+                    <DateRangePicker.Trigger>
+                      <DateRangePicker.TriggerIndicator />
+                    </DateRangePicker.Trigger>
+                  </DateField.Suffix>
+                </DateField.Group>
+                {rangeIsInvalid ? (
+                  <FieldError>Please choose a valid future date range.</FieldError>
+                ) : (
+                  <Description>Select trip start and end date.</Description>
+                )}
+                <DateRangePicker.Popover>
+                  <RangeCalendar aria-label="Trip dates">
+                    <RangeCalendar.Header>
+                      <RangeCalendar.YearPickerTrigger>
+                        <RangeCalendar.YearPickerTriggerHeading />
+                        <RangeCalendar.YearPickerTriggerIndicator />
+                      </RangeCalendar.YearPickerTrigger>
+                      <RangeCalendar.NavButton slot="previous" />
+                      <RangeCalendar.NavButton slot="next" />
+                    </RangeCalendar.Header>
+                    <RangeCalendar.Grid>
+                      <RangeCalendar.GridHeader>
+                        {(day) => <RangeCalendar.HeaderCell>{day}</RangeCalendar.HeaderCell>}
+                      </RangeCalendar.GridHeader>
+                      <RangeCalendar.GridBody>
+                        {(date) => <RangeCalendar.Cell date={date} />}
+                      </RangeCalendar.GridBody>
+                    </RangeCalendar.Grid>
+                    <RangeCalendar.YearPickerGrid>
+                      <RangeCalendar.YearPickerGridBody>
+                        {({ year }) => <RangeCalendar.YearPickerCell year={year} />}
+                      </RangeCalendar.YearPickerGridBody>
+                    </RangeCalendar.YearPickerGrid>
+                  </RangeCalendar>
+                </DateRangePicker.Popover>
+              </DateRangePicker>
+
+              {/* Separate pickup time field — independent of the date range */}
+              <TimeField
+                isRequired
+                name="pickupTime"
+                value={pickupTime}
+                onChange={setPickupTime}
+              >
+                <Label className="text-sm font-semibold text-slate-700">
+                  Pickup Time <span className="text-blue-600">*</span>
+                </Label>
+                <DateField.Group fullWidth>
+                  <DateField.Input>
+                    {(segment) => <DateField.Segment segment={segment} />}
+                  </DateField.Input>
+                </DateField.Group>
+                <Description>What time will travelers be picked up on the start date?</Description>
+              </TimeField>
+
+              {/* Auto-calculated duration — read-only, date-based only */}
+              {duration && (
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
+                  <CalendarIcon size={16} className="text-slate-400 shrink-0" />
+                  <span className="text-sm">
+                    <span className="text-slate-500">Duration: </span>
+                    <span className="font-semibold text-slate-800">
+                      {duration.days} Day{duration.days !== 1 ? "s" : ""} / {duration.nights} Night
+                      {duration.nights !== 1 ? "s" : ""}
+                    </span>
+                  </span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Min Group Size">
+                  <div className="relative">
+                    <Users size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="number"
+                      min={1}
+                      className={`${inputClass} pl-10`}
+                      placeholder="2"
+                      value={form.minGroupSize}
+                      onChange={(e) => updateField("minGroupSize", e.target.value)}
+                    />
+                  </div>
+                </Field>
+                <Field label="Max Group Size">
                   <input
                     type="number"
                     min={1}
-                    className={`${inputClass} pl-10`}
-                    placeholder="2"
-                    value={form.minGroupSize}
-                    onChange={(e) => updateField("minGroupSize", e.target.value)}
+                    className={inputClass}
+                    placeholder="30"
+                    value={form.maxGroupSize}
+                    onChange={(e) => updateField("maxGroupSize", e.target.value)}
                   />
-                </div>
-              </Field>
-              <Field label="Max Group Size">
-                <input
-                  type="number"
-                  min={1}
-                  className={inputClass}
-                  placeholder="30"
-                  value={form.maxGroupSize}
-                  onChange={(e) => updateField("maxGroupSize", e.target.value)}
-                />
-              </Field>
+                </Field>
+              </div>
             </div>
           </SectionCard>
 
@@ -593,7 +732,7 @@ export default function AddPackageForm() {
                 <div key={idx} className="relative bg-slate-50 border border-slate-100 rounded-2xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold">
-                      <Calendar size={13} /> Day {day.day}
+                      <CalendarIcon size={13} /> Day {day.day}
                     </span>
                     {itinerary.length > 1 && (
                       <button

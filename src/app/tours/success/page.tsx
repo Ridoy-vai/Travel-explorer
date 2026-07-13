@@ -41,7 +41,7 @@ export default async function Success({ searchParams }) {
     });
 
     const user = session?.user;
-    console.log('Authenticated user:', user);
+    // console.log('Authenticated user:', user);
     const { session_id } = await searchParams
 
     if (!session_id) {

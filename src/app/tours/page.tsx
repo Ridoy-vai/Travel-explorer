@@ -1,11 +1,9 @@
 "use client";
 
 import TourPackageCard from "@/Components/TourPackageCard";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
-// ------------------------------------------------------------------
-// টাইপ ডেফিনিশন
-// ------------------------------------------------------------------
 interface TourPackageListItem {
   _id: { $oid: string } | string;
   title: string;
@@ -18,6 +16,8 @@ interface TourPackageListItem {
   galleryImages?: string[];
   durationDays?: number | null;
   durationNights?: number | null;
+  transportation?: string;
+  maxGroupSize?: number;
   status: "published" | "draft" | "unpublished";
 }
 
@@ -32,50 +32,98 @@ interface PaginationInfo {
 interface Filters {
   search: string;
   category: string;
+  destination: string;
+  transportation: string;
   duration: string;
+  minPrice: string;
   maxPrice: string;
+  minGroupSize: string;
+  sort: string;
 }
 
 const API_BASE = "http://localhost:2000";
 const LIMIT = 12;
 
+// ✅ ছবি অনুযায়ী স্ট্যাটিক ক্যাটাগরি লিস্ট
+const CATEGORY_OPTIONS = [
+  "Adventure",
+  "Beach",
+  "Hill & Mountain",
+  "Honeymoon",
+  "Family",
+  "Corporate",
+  "Historical & Cultural",
+  "Wildlife",
+];
+
+// ✅ ছবি অনুযায়ী স্ট্যাটিক ট্রান্সপোর্টেশন লিস্ট
+const TRANSPORTATION_OPTIONS = ["Bus", "Flight", "Train", "Private Car", "Mixed"];
+
 const DURATION_OPTIONS = [
   { label: "Any duration", value: "" },
   { label: "1-3 Days", value: "1-3" },
   { label: "4-6 Days", value: "4-6" },
-  { label: "7+ Days", value: "7+" },
+  { label: "7-10 Days", value: "7-10" },
+  { label: "11+ Days", value: "11+" },
 ];
 
-export default function TourPackagesGridPage() {
+const SORT_OPTIONS = [
+  { label: "Newest first", value: "newest" },
+  { label: "Price: Low to High", value: "priceLowToHigh" },
+  { label: "Price: High to Low", value: "priceHighToLow" },
+  { label: "Duration: Short to Long", value: "durationShort" },
+  { label: "Duration: Long to Short", value: "durationLong" },
+];
+
+const initialFilters: Filters = {
+  search: "",
+  category: "",
+  destination: "",
+  transportation: "",
+  duration: "",
+  minPrice: "",
+  maxPrice: "",
+  minGroupSize: "",
+  sort: "newest",
+};
+
+// ---------------- URL <-> Filters হেল্পার ----------------
+function filtersFromParams(params: URLSearchParams): Filters {
+  return {
+    search: params.get("search") || "",
+    category: params.get("category") || "",
+    destination: params.get("destination") || "",
+    transportation: params.get("transportation") || "",
+    duration: params.get("duration") || "",
+    minPrice: params.get("minPrice") || "",
+    maxPrice: params.get("maxPrice") || "",
+    minGroupSize: params.get("minGroupSize") || "",
+    sort: params.get("sort") || "newest",
+  };
+}
+
+function TourPackagesGridPageInner() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // ✅ প্রথমবার URL থেকে ফিল্টার লোড হচ্ছে (page refresh/share করলেও কাজ করবে)
+  const [filters, setFilters] = useState<Filters>(() =>
+    filtersFromParams(searchParams)
+  );
+  const [searchInput, setSearchInput] = useState(filters.search);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
+
   const [packages, setPackages] = useState<TourPackageListItem[]>([]);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<string[]>([]);
-
-  // ---------------- ফিল্টার স্টেট ----------------
-  const [filters, setFilters] = useState<Filters>({
-    search: "",
-    category: "",
-    duration: "",
-    maxPrice: "",
-  });
-  const [searchInput, setSearchInput] = useState(""); // ডিবাউন্সড ইনপুট আলাদা রাখা হচ্ছে
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  // ---------------- ক্যাটাগরি লিস্ট একবার fetch ----------------
-  useEffect(() => {
-    fetch(`${API_BASE}/api/packages/categories`)
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.success) setCategories(result.data);
-      })
-      .catch(() => {});
-  }, []);
+  const isFirstRender = useRef(true);
 
   // ---------------- সার্চ ইনপুট ডিবাউন্স (৫০০ms) ----------------
   useEffect(() => {
@@ -84,6 +132,27 @@ export default function TourPackagesGridPage() {
     }, 500);
     return () => clearTimeout(timer);
   }, [searchInput]);
+
+  // ---------------- ✅ ফিল্টার বদলালে URL query params আপডেট হচ্ছে ----------------
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.search) params.set("search", filters.search);
+    if (filters.category) params.set("category", filters.category);
+    if (filters.destination) params.set("destination", filters.destination);
+    if (filters.transportation) params.set("transportation", filters.transportation);
+    if (filters.duration) params.set("duration", filters.duration);
+    if (filters.minPrice) params.set("minPrice", filters.minPrice);
+    if (filters.maxPrice) params.set("maxPrice", filters.maxPrice);
+    if (filters.minGroupSize) params.set("minGroupSize", filters.minGroupSize);
+    if (filters.sort && filters.sort !== "newest") params.set("sort", filters.sort);
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+
+    // scroll: false দেওয়া হয়েছে যাতে ফিল্টার করলে পেজ উপরে জাম্প না করে
+    router.replace(newUrl, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
 
   // ---------------- ডেটা fetch করা ----------------
   const fetchPackages = useCallback(
@@ -94,11 +163,16 @@ export default function TourPackagesGridPage() {
         const params = new URLSearchParams({
           page: String(pageToFetch),
           limit: String(LIMIT),
+          sort: activeFilters.sort,
         });
         if (activeFilters.search) params.set("search", activeFilters.search);
         if (activeFilters.category) params.set("category", activeFilters.category);
+        if (activeFilters.destination) params.set("destination", activeFilters.destination);
+        if (activeFilters.transportation) params.set("transportation", activeFilters.transportation);
         if (activeFilters.duration) params.set("duration", activeFilters.duration);
+        if (activeFilters.minPrice) params.set("minPrice", activeFilters.minPrice);
         if (activeFilters.maxPrice) params.set("maxPrice", activeFilters.maxPrice);
+        if (activeFilters.minGroupSize) params.set("minGroupSize", activeFilters.minGroupSize);
 
         const res = await fetch(`${API_BASE}/api/packages?${params.toString()}`);
         const result = await res.json();
@@ -127,7 +201,17 @@ export default function TourPackagesGridPage() {
     setPage(1);
     fetchPackages(1, filters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.search, filters.category, filters.duration, filters.maxPrice]);
+  }, [
+    filters.search,
+    filters.category,
+    filters.destination,
+    filters.transportation,
+    filters.duration,
+    filters.minPrice,
+    filters.maxPrice,
+    filters.minGroupSize,
+    filters.sort,
+  ]);
 
   // ---------------- ইনফিনিট স্ক্রলে পরের পেজ ----------------
   useEffect(() => {
@@ -156,31 +240,55 @@ export default function TourPackagesGridPage() {
   }, [isLoading, pagination?.hasMore]);
 
   const hasActiveFilters =
-    filters.search || filters.category || filters.duration || filters.maxPrice;
+    filters.search ||
+    filters.category ||
+    filters.destination ||
+    filters.transportation ||
+    filters.duration ||
+    filters.minPrice ||
+    filters.maxPrice ||
+    filters.minGroupSize;
 
   const clearFilters = () => {
     setSearchInput("");
-    setFilters({ search: "", category: "", duration: "", maxPrice: "" });
+    setFilters(initialFilters);
+  };
+
+  const updateFilter = (key: keyof Filters, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   return (
     <div className="min-h-screen bg-[#FAF8F3] py-12 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1
-            className="text-3xl sm:text-4xl font-semibold text-[#12332E]"
-            style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <h1
+              className="text-3xl sm:text-4xl font-semibold text-[#12332E]"
+              style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+            >
+              All Tour Packages
+            </h1>
+            <p className="text-sm text-[#6B6459] mt-1">
+              {pagination?.totalItems ?? 0} packages available
+            </p>
+          </div>
+
+          <select
+            value={filters.sort}
+            onChange={(e) => updateFilter("sort", e.target.value)}
+            className="px-4 py-2.5 rounded-xl border border-[#E7E3D8] bg-white text-sm text-[#12332E] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
           >
-            All Tour Packages
-          </h1>
-          <p className="text-sm text-[#6B6459] mt-1">
-            {pagination?.totalItems ?? 0} packages available
-          </p>
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* ---------------- সার্চ + ফিল্টার বার ---------------- */}
-        <div className="bg-white rounded-2xl border border-[#E7E3D8] p-4 mb-8 flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center">
-          {/* সার্চ বক্স */}
+        {/* ---------------- সার্চ + প্রাইমারি ফিল্টার বার ---------------- */}
+        <div className="bg-white rounded-2xl border border-[#E7E3D8] p-4 mb-3 flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center">
           <div className="relative flex-1 min-w-[200px]">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9A9484]">
               🔍
@@ -189,33 +297,28 @@ export default function TourPackagesGridPage() {
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by title, destination..."
+              placeholder="Search by title, destination, description..."
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] placeholder:text-[#9A9484] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
             />
           </div>
 
-          {/* ক্যাটাগরি */}
+          {/* ✅ স্ট্যাটিক ক্যাটাগরি ড্রপডাউন */}
           <select
             value={filters.category}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, category: e.target.value }))
-            }
-            className="px-4 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227] capitalize"
+            onChange={(e) => updateFilter("category", e.target.value)}
+            className="px-4 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
           >
             <option value="">All categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat} className="capitalize">
+            {CATEGORY_OPTIONS.map((cat) => (
+              <option key={cat} value={cat}>
                 {cat}
               </option>
             ))}
           </select>
 
-          {/* ডিউরেশন */}
           <select
             value={filters.duration}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, duration: e.target.value }))
-            }
+            onChange={(e) => updateFilter("duration", e.target.value)}
             className="px-4 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
           >
             {DURATION_OPTIONS.map((opt) => (
@@ -225,17 +328,12 @@ export default function TourPackagesGridPage() {
             ))}
           </select>
 
-          {/* ম্যাক্স বাজেট */}
-          <input
-            type="number"
-            min={0}
-            value={filters.maxPrice}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, maxPrice: e.target.value }))
-            }
-            placeholder="Max budget (৳)"
-            className="w-full sm:w-40 px-4 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] placeholder:text-[#9A9484] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
-          />
+          <button
+            onClick={() => setShowMoreFilters((prev) => !prev)}
+            className="px-4 py-2.5 rounded-xl border border-[#E7E3D8] text-sm font-medium text-[#12332E] hover:bg-[#FAF8F3] transition-colors whitespace-nowrap"
+          >
+            {showMoreFilters ? "Fewer filters ▲" : "More filters ▼"}
+          </button>
 
           {hasActiveFilters && (
             <button
@@ -246,6 +344,61 @@ export default function TourPackagesGridPage() {
             </button>
           )}
         </div>
+
+        {/* ---------------- সেকেন্ডারি ফিল্টার ---------------- */}
+        {showMoreFilters && (
+          <div className="bg-white rounded-2xl border border-[#E7E3D8] p-4 mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <input
+              type="text"
+              value={filters.destination}
+              onChange={(e) => updateFilter("destination", e.target.value)}
+              placeholder="Destination"
+              className="px-4 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] placeholder:text-[#9A9484] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
+            />
+
+            {/* ✅ স্ট্যাটিক ট্রান্সপোর্টেশন ড্রপডাউন */}
+            <select
+              value={filters.transportation}
+              onChange={(e) => updateFilter("transportation", e.target.value)}
+              className="px-4 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
+            >
+              <option value="">Any transportation</option>
+              {TRANSPORTATION_OPTIONS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min={0}
+                value={filters.minPrice}
+                onChange={(e) => updateFilter("minPrice", e.target.value)}
+                placeholder="Min budget (৳)"
+                className="w-1/2 px-3 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] placeholder:text-[#9A9484] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
+              />
+              <input
+                type="number"
+                min={0}
+                value={filters.maxPrice}
+                onChange={(e) => updateFilter("maxPrice", e.target.value)}
+                placeholder="Max budget (৳)"
+                className="w-1/2 px-3 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] placeholder:text-[#9A9484] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
+              />
+            </div>
+
+            <input
+              type="number"
+              min={0}
+              value={filters.minGroupSize}
+              onChange={(e) => updateFilter("minGroupSize", e.target.value)}
+              placeholder="Min group size"
+              className="px-4 py-2.5 rounded-xl border border-[#E7E3D8] bg-[#FAF8F3] text-sm text-[#12332E] placeholder:text-[#9A9484] focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 focus:border-[#C9A227]"
+            />
+          </div>
+        )}
 
         {/* ---------------- Initial loading ---------------- */}
         {isInitialLoading ? (
@@ -301,5 +454,14 @@ export default function TourPackagesGridPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// ✅ useSearchParams ব্যবহার করার জন্য Suspense boundary বাধ্যতামূলক (Next.js App Router requirement)
+export default function TourPackagesGridPage() {
+  return (
+    <Suspense fallback={null}>
+      <TourPackagesGridPageInner />
+    </Suspense>
   );
 }

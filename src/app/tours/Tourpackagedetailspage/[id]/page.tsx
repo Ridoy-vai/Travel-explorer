@@ -39,6 +39,9 @@ interface TourPackageDetails {
   departureLocation?: string;
   transportation?: string;
   accommodation?: string;
+  tourStartDate?: { $date: string } | string;
+  tourEndDate?: { $date: string } | string;
+  pickupTime?: string; // "HH:MM" format
   tags?: string[];
   status: "published" | "draft" | "unpublished";
   createdAt?: { $date: string } | string;
@@ -155,10 +158,40 @@ export default function TourPackageDetailsPage({
 
   if (!pkg) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-[#FAF8F3]">
-        <p className="text-sm text-[#B4453D]">
-          {error || "Package could not be found."}
-        </p>
+      <div className="min-h-[70vh] flex items-center justify-center bg-[#FAF8F3] px-6">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-[#B4453D]/10 flex items-center justify-center">
+            <span className="text-3xl" aria-hidden>
+              🧭
+            </span>
+          </div>
+          <h2
+            className="text-xl font-medium text-[#12332E] mb-2"
+            style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+          >
+            Package not found
+          </h2>
+          <p className="text-sm text-[#8A8478] leading-relaxed mb-6">
+            {error ||
+              "This tour package may have been removed, or the link you followed is no longer valid."}
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => fetchPackage()}
+              className="px-5 py-2.5 rounded-xl bg-[#12332E] text-[#F5F1E8] text-sm font-medium hover:bg-[#0B241F] transition-colors"
+            >
+              Try again
+            </button>
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="px-5 py-2.5 rounded-xl border border-[#E7E3D8] text-[#6B6459] text-sm font-medium hover:bg-white transition-colors"
+            >
+              Back to packages
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -203,6 +236,35 @@ export default function TourPackageDetailsPage({
   ) => {
     setter((prev) => Math.max(min, prev + delta));
   };
+
+  // MongoDB extended JSON ({ $date }) ar plain ISO string duitai handle kore
+  function parseMongoDate(value: { $date: string } | string | undefined): Date | null {
+    if (!value) return null;
+    const dateStr = typeof value === "object" ? value.$date : value;
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  function formatDate(value: { $date: string } | string | undefined): string {
+    const date = parseMongoDate(value);
+    if (!date) return "—";
+    return date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  function formatPickupTime(time: string | undefined): string {
+    if (!time) return "—";
+    const [hourStr, minuteStr] = time.split(":");
+    const hour = Number(hourStr);
+    const minute = Number(minuteStr);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return time;
+    const period = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+    return `${displayHour}:${minute.toString().padStart(2, "0")} ${period}`;
+  }
 
   // adult/child count কমানো হলে male+female যদি নতুন total ছাড়িয়ে যায়,
   // আগে female থেকে কমাবে, তারপর প্রয়োজনে male থেকে কমাবে
@@ -326,6 +388,30 @@ export default function TourPackageDetailsPage({
           <Fact label="Accommodation" value={pkg.accommodation || "—"} />
           <Fact label="Departs from" value={pkg.departureLocation || "—"} />
         </div>
+
+        {/* ---------------- TRIP DATES STRIP ---------------- */}
+        {(pkg.tourStartDate || pkg.tourEndDate || pkg.pickupTime) && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white rounded-2xl border border-[#E7E3D8] shadow-[0_10px_30px_-15px_rgba(18,51,46,0.25)] p-5 mt-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-[#12332E]/5 flex items-center justify-center shrink-0">
+                <span aria-hidden>🛫</span>
+              </div>
+              <Fact label="Trip Start" value={formatDate(pkg.tourStartDate)} />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-[#12332E]/5 flex items-center justify-center shrink-0">
+                <span aria-hidden>🏁</span>
+              </div>
+              <Fact label="Trip End" value={formatDate(pkg.tourEndDate)} />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-[#12332E]/5 flex items-center justify-center shrink-0">
+                <span aria-hidden>🕐</span>
+              </div>
+              <Fact label="Pickup Time" value={formatPickupTime(pkg.pickupTime)} />
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
           {/* ---------------- MAIN CONTENT ---------------- */}
@@ -536,8 +622,6 @@ export default function TourPackageDetailsPage({
 
                   <div className="h-px bg-white/10" />
 
-                  <div className="h-px bg-white/10" />
-
                   <p className="text-[11px] uppercase tracking-[0.15em] text-[#A8AFC0] font-medium">
                     Gender breakdown ({maleCount + femaleCount} / {totalTravelers} assigned)
                   </p>
@@ -601,6 +685,20 @@ export default function TourPackageDetailsPage({
                       <span className="font-mono text-[#C9A227]">${totalPrice}</span>
                     </div>
                   </div>
+
+                  {/* Trip date summary */}
+                  {(pkg.tourStartDate || pkg.tourEndDate) && (
+                    <div className="rounded-xl bg-white/5 p-3 flex items-center justify-between text-xs">
+                      <span className="text-[#D8D3C4]">
+                        {formatDate(pkg.tourStartDate)} → {formatDate(pkg.tourEndDate)}
+                      </span>
+                      {pkg.pickupTime && (
+                        <span className="text-[#C9A227] font-medium">
+                          Pickup {formatPickupTime(pkg.pickupTime)}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   <form action={`/api/checkout-sessions`} method="POST">
                     <input type="hidden" name="packageId" value={id} />

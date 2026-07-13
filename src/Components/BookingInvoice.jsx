@@ -153,7 +153,10 @@ export default function BookingInvoice({
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1.5rem', margin: '1.5rem 0', fontSize: '0.9rem', color: '#333' }}>
                         <InfoRow label="Destination" value={pkg?.destination} />
                         <InfoRow label="Duration" value={pkg ? `${pkg.durationDays}D / ${pkg.durationNights}N` : '—'} />
-                        <InfoRow label="Departure" value={pkg?.departureLocation} />
+                        <InfoRow label="Tour Start Date" value={formatDate(pkg?.tourStartDate)} />
+                        <InfoRow label="Tour End Date" value={formatDate(pkg?.tourEndDate)} />
+                        <InfoRow label="Pickup Time" value={pkg?.pickupTime} />
+                        <InfoRow label="Departure Location" value={pkg?.departureLocation} />
                         <InfoRow label="Transportation" value={pkg?.transportation} />
                         <InfoRow label="Accommodation" value={pkg?.accommodation} />
                         <InfoRow label="Agency" value={pkg?.agencyName} />
@@ -214,4 +217,13 @@ function SummaryRow({ label, value }) {
             <span style={{ fontWeight: 600 }}>{value}</span>
         </div>
     )
+}
+
+// ✅ নতুন: date formatter — MongoDB extended JSON ({ $date: ... }) এবং plain ISO string দুটোই সামলাবে
+function formatDate(value) {
+    if (!value) return null
+    const raw = typeof value === 'object' && value.$date ? value.$date : value
+    const d = new Date(raw)
+    if (isNaN(d.getTime())) return null
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }

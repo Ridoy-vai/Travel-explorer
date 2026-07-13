@@ -233,11 +233,36 @@ export default function Navbar({
 
                 {profileOpen && (
                   <div className="absolute right-0 top-full mt-0 w-56 bg-white rounded-xl shadow-xl py-2 z-50 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    <div className="px-4 py-2 border-b border-gray-100 flex items-center gap-3">
+                      {user.image ? (
+                        <img
+                          src={user.image}
+                          alt={user.name || "User"}
+                          className="w-9 h-9 rounded-full object-cover border border-gray-200 flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold text-sm flex-shrink-0">
+                          {user.name?.charAt(0)?.toUpperCase() || "U"}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
                     </div>
-                    <Link href="/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors">
+                    <Link
+                      href={
+                        user?.role === "admin"
+                          ? "/dashboard/admin"
+                          : user?.role === "agency"
+                            ? "/dashboard/agency"
+                            : "/dashboard/traveler"
+                      }
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link href="/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors">
                       <User size={16} /> My Profile
                     </Link>
                     <Link href="/settings" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors">
