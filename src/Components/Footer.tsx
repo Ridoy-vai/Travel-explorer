@@ -2,11 +2,9 @@ import {
   MapPin,
   Phone,
   Mail,
-  Instagram,
-  Facebook,
-  Youtube,
-  Linkedin,
+  
 } from "lucide-react";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTiktok, FaXRay, FaYoutube } from "react-icons/fa";
 
 /**
  * Footer
@@ -39,12 +37,12 @@ const supportLinks: FooterLink[] = [
 ];
 
 const socialLinks = [
-  { icon: Instagram, href: "https://instagram.com", label: "Instagram" },
-  { icon: TikTokIcon, href: "https://tiktok.com", label: "TikTok" },
-  { icon: Facebook, href: "https://facebook.com", label: "Facebook" },
-  { icon: Youtube, href: "https://youtube.com", label: "YouTube" },
-  { icon: Linkedin, href: "https://linkedin.com", label: "LinkedIn" },
-  { icon: XIcon, href: "https://x.com", label: "X" },
+  { icon: FaInstagram, href: "https://instagram.com", label: "Instagram" },
+  { icon: FaTiktok, href: "https://tiktok.com", label: "TikTok" },
+  { icon: FaFacebook, href: "https://facebook.com", label: "Facebook" },
+  { icon: FaYoutube, href: "https://youtube.com", label: "YouTube" },
+  { icon: FaLinkedin, href: "https://linkedin.com", label: "LinkedIn" },
+  { icon: FaXRay, href: "https://x.com", label: "X" },
 ];
 
 const paymentBadges = [
