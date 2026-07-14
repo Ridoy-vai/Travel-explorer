@@ -1,10 +1,12 @@
+"use client";
 import {
   MapPin,
   Phone,
   Mail,
-  
+
 } from "lucide-react";
-import { FaFacebook, FaInstagram, FaLinkedin, FaTiktok, FaXRay, FaYoutube } from "react-icons/fa";
+import { usePathname } from "next/navigation";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTiktok, FaYoutube } from "react-icons/fa";
 
 /**
  * Footer
@@ -36,15 +38,6 @@ const supportLinks: FooterLink[] = [
   { label: "Complaints Book", href: "/complaints-book" },
 ];
 
-const socialLinks = [
-  { icon: FaInstagram, href: "https://instagram.com", label: "Instagram" },
-  { icon: FaTiktok, href: "https://tiktok.com", label: "TikTok" },
-  { icon: FaFacebook, href: "https://facebook.com", label: "Facebook" },
-  { icon: FaYoutube, href: "https://youtube.com", label: "YouTube" },
-  { icon: FaLinkedin, href: "https://linkedin.com", label: "LinkedIn" },
-  { icon: FaXRay, href: "https://x.com", label: "X" },
-];
-
 const paymentBadges = [
   { label: "VISA", classes: "text-blue-700" },
   { label: "Mastercard", classes: "text-orange-600" },
@@ -53,6 +46,24 @@ const paymentBadges = [
 ];
 
 export default function Footer() {
+  // Hooks must be called inside the component, not at module scope.
+  const pathname = usePathname();
+
+  // socialLinks lives inside the component so it can reference the
+  // local XIcon (Twitter/X logo) instead of the unrelated FaXRay icon.
+  const socialLinks = [
+    { icon: FaInstagram, href: "https://instagram.com", label: "Instagram" },
+    { icon: FaTiktok, href: "https://tiktok.com", label: "TikTok" },
+    { icon: FaFacebook, href: "https://facebook.com", label: "Facebook" },
+    { icon: FaYoutube, href: "https://youtube.com", label: "YouTube" },
+    { icon: FaLinkedin, href: "https://linkedin.com", label: "LinkedIn" },
+    { icon: XIcon, href: "https://x.com", label: "X" },
+  ];
+
+  if (pathname?.includes("dashboard")) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-slate-100 bg-white px-6 py-14">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">

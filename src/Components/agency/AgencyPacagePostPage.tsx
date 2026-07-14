@@ -49,7 +49,7 @@ const columns = [
 
 const API_BASE = "http://localhost:2000";
 
-export default function AgencyPackagesManager( ) {
+export default function AgencyPackagesManager() {
     const { data: session } = authClient.useSession();
     const user = session?.user;
     console.log("Logged-in user: vvvvvv", user);
@@ -120,15 +120,15 @@ export default function AgencyPackagesManager( ) {
                 {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ newStatus: newStatus,
-                        userid: user?.id, // লগইন করা ইউজারের আইডি পাঠানো হচ্ছে
-                        userstatus: user?.status, // লগইন করা ইউজারের স্ট্যাটাস পাঠানো হচ্ছে
-                     }),
+                    body: JSON.stringify({
+                        newStatus: newStatus,
+                        userid: user?.id, // শুধু এটাই যথেষ্ট, backend নিজে DB থেকে status verify করবে
+                    })
                 }
             );
             const result = await res.json();
 
-            if( result.success == false && result.message) {
+            if (result.success == false && result.message) {
                 toast.error(`${result.message}`);
             }
             if (result.success) {

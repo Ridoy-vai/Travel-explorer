@@ -85,6 +85,9 @@ export default function Navbar({
       console.error("Error signing out:", error);
     }
   };
+  if (pathname.includes("dashboard")) {
+    return null;
+  }
 
   return (
     <div className="w-full font-sans sticky top-0 z-50 shadow-sm bg-white">
