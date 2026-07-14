@@ -61,7 +61,7 @@ export async function POST(request) {
                 totalFemale: totalFemale ?? '',
                 totalMale: totalMale ?? '',
             },
-            success_url: `${origin}/tours/success?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${origin}/Packages/success?session_id={CHECKOUT_SESSION_ID}`,
         })
 
         return NextResponse.redirect(session.url, 303)

@@ -80,6 +80,7 @@ export default function Navbar({
   const HandleSignOut = async () => {
     try {
       await authClient.signOut();
+      setIsMobileMenuOpen(false);
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -95,11 +96,11 @@ export default function Navbar({
           <div className="flex items-center gap-6">
             <a href="https://wa.me/51980538470" className="flex items-center gap-2 hover:opacity-80 transition">
               <Phone size={14} />
-              <span>+51 980 538 470</span>
+              <span>+01324193768</span>
             </a>
             <a href="mailto:info@travelbuddiesperu.com" className="flex items-center gap-2 hover:opacity-80 transition">
               <Mail size={14} />
-              <span>info@travelbuddiesperu.com</span>
+              <span>info@mdshahriyarridoy@gmail.com</span>
             </a>
           </div>
 
@@ -163,7 +164,7 @@ export default function Navbar({
             {/* Tours dropdown */}
             <div className="relative" onMouseEnter={() => setToursOpen(true)} onMouseLeave={() => setToursOpen(false)}>
               <Link href="/tours" className="flex items-center gap-1 hover:text-blue-600 transition py-2">
-                Tours <ChevronDown size={16} />
+                Tours In <ChevronDown size={16} />
               </Link>
               {toursOpen && (
                 <div className="absolute left-0 top-full mt-0 w-56 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -176,7 +177,7 @@ export default function Navbar({
               )}
             </div>
 
-            <Link href="/dashboard/agency" className="hover:text-blue-600 transition">Peru Packages</Link>
+            <Link href="/Packages" className="hover:text-blue-600 transition">Tours Packages</Link>
 
             {/* Destination dropdown */}
             <div className="relative" onMouseEnter={() => setDestOpen(true)} onMouseLeave={() => setDestOpen(false)}>
@@ -197,7 +198,7 @@ export default function Navbar({
             {/* Language selector */}
             <div className="relative" onMouseEnter={() => setLangOpen(true)} onMouseLeave={() => setLangOpen(false)}>
               <button className="flex items-center gap-2 hover:text-blue-600 transition py-2">
-                🇬🇧 English <ChevronDown size={16} />
+                English <ChevronDown size={16} />
               </button>
               {langOpen && (
                 <div className="absolute left-0 top-full mt-0 w-36 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -290,14 +291,33 @@ export default function Navbar({
 
           {/* Mobile Menu Toggle Button */}
           <div className="flex items-center gap-3 lg:hidden">
-            {/* If logged in on mobile, show mini avatar outside the drawer too if desired, or keep it inside */}
-            <button
-              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors"
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            {user ? (
+              /* Logged in on mobile: hide hamburger, show profile avatar instead.
+                 Clicking it opens the same floating dropdown, which now also
+                 contains the nav links inside it (see section 3 below). */
+              <button
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                className="focus:outline-none"
+                aria-label="Toggle profile menu"
+              >
+                {user.image ? (
+                  <img src={user.image} alt={user.name} className="h-9 w-9 rounded-full object-cover border-2 border-blue-500" />
+                ) : (
+                  <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold border-2 border-blue-500">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </button>
+            ) : (
+              /* Logged out on mobile: show hamburger menu bar */
+              <button
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors"
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            )}
           </div>
         </div>
       </nav>
@@ -313,7 +333,63 @@ export default function Navbar({
           {/* Floating Dropdown Box */}
           <div className="fixed right-4 top-16 z-50 w-[290px] max-h-[80vh] overflow-y-auto rounded-xl border border-gray-100 bg-white p-4 shadow-xl transition-all duration-300 ease-in-out lg:hidden animate-in fade-in slide-in-from-top-4 duration-200">
 
-            {/* Mobile Nav Links Group */}
+            {/* Profile card + account links shown at the top ONLY when logged in */}
+            {user && (
+              <div className="bg-gray-50 rounded-xl p-2.5 mb-3 border border-gray-100">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  {user.image ? (
+                    <img src={user.image} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="truncate">
+                    <p className="text-xs font-semibold text-gray-800 truncate">{user.name}</p>
+                    <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <Link
+                    href={
+                      user?.role === "admin"
+                        ? "/dashboard/admin"
+                        : user?.role === "agency"
+                          ? "/dashboard/agency"
+                          : "/dashboard/traveler"
+                    }
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="rounded-md px-2 py-1.5 text-xs text-gray-700 hover:bg-white hover:text-blue-600 transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-gray-700 hover:bg-white hover:text-blue-600 transition-colors"
+                  >
+                    <User size={14} /> My Profile
+                  </Link>
+                  <Link
+                    href="/settings"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-gray-700 hover:bg-white hover:text-blue-600 transition-colors"
+                  >
+                    <Settings size={14} /> Settings
+                  </Link>
+                </div>
+
+                <button
+                  onClick={HandleSignOut}
+                  className="mt-1.5 w-full flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                >
+                  <LogOut size={14} /> Logout
+                </button>
+              </div>
+            )}
+
+            {/* Mobile Nav Links Group (visible for everyone, logged in or not) */}
             <div className="flex flex-col gap-1">
 
               {/* Accordion 1: Tours */}
@@ -322,7 +398,7 @@ export default function Navbar({
                   onClick={() => setMobileToursOpen(!mobileToursOpen)}
                   className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
                 >
-                  <span>Tours</span>
+                  <span>Tours in</span>
                   <ChevronDown size={16} className={`transition-transform duration-200 ${mobileToursOpen ? "rotate-180 text-blue-600" : ""}`} />
                 </button>
                 {mobileToursOpen && (
@@ -336,8 +412,8 @@ export default function Navbar({
                 )}
               </div>
 
-              <Link href="#" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
-                Peru Packages
+              <Link href="/Packages" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+                Tours Packages
               </Link>
 
               {/* Accordion 2: Destination */}
@@ -370,37 +446,12 @@ export default function Navbar({
 
             </div>
 
-            {/* Mobile Action Buttons Footer */}
-            <div className="mt-3 border-t border-gray-100 pt-3 flex flex-col gap-2">
-
-              <Link href="#plan-trip" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-blue-600 text-white text-center text-xs font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
-                Plan A Trip Here
-              </Link>
-
-              {/* MOBILE CONDITIONAL AUTH */}
-              {user ? (
-                <div className="bg-gray-50 rounded-xl p-2.5 mt-1 border border-gray-100">
-                  <div className="flex items-center gap-2 mb-2 px-1">
-                    {user.image ? (
-                      <img src={user.image} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="truncate">
-                      <p className="text-xs font-semibold text-gray-800 truncate">{user.name}</p>
-                      <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => { setIsMobileMenuOpen(false); HandleSignOut(); }}
-                    className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
-                  >
-                    <LogOut size={14} /> Logout
-                  </button>
-                </div>
-              ) : (
+            {/* Mobile Action Buttons Footer — only shown when logged OUT */}
+            {!user && (
+              <div className="mt-3 border-t border-gray-100 pt-3 flex flex-col gap-2">
+                <Link href="#plan-trip" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-blue-600 text-white text-center text-xs font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
+                  Plan A Trip Here
+                </Link>
                 <div className="grid grid-cols-2 gap-2 mt-1">
                   <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg border border-gray-200 py-2 text-center text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                     Login
@@ -409,8 +460,15 @@ export default function Navbar({
                     Sign Up
                   </Link>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* "Plan A Trip" CTA still shown for logged-in users too */}
+            {user && (
+              <Link href="#plan-trip" onClick={() => setIsMobileMenuOpen(false)} className="mt-3 w-full block bg-blue-600 text-white text-center text-xs font-semibold py-2 rounded-lg hover:bg-blue-700 transition">
+                Plan A Trip Here
+              </Link>
+            )}
 
           </div>
         </>
