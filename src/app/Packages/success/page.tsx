@@ -4,7 +4,7 @@ import BookingInvoice from '../../../components/BookingInvoice'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 
-const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL
+const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000";
 
 async function getPackageDetails(packageId) {
     try {
@@ -36,7 +36,7 @@ async function saveBooking(payload) {
 }
 
 export default async function Success({ searchParams }) {
-     const session = await auth.api.getSession({
+    const session = await auth.api.getSession({
         headers: await headers(),
     });
 

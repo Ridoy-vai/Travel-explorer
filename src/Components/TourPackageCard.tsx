@@ -63,7 +63,7 @@ export default function TourPackageCard({
 
   return (
     <Link
-      href={`/tours/Tourpackagedetailspage/${id}`}
+      href={`/Packages/Tourpackagedetailspage/${id}`}
       className="group block relative w-full max-w-sm rounded-3xl overflow-hidden shadow-[0_10px_30px_-12px_rgba(18,51,46,0.35)] border border-[#E7E3D8] bg-[#12332E] transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-12px_rgba(18,51,46,0.45)]"
     >
       {/* ---------------- ইমেজ স্লাইডশো ---------------- */}

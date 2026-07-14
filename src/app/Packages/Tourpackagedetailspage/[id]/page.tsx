@@ -73,7 +73,7 @@ interface BookingData {
   bookedAt: string;
 }
 
-const API_BASE = "http://localhost:2000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 const statusColorMap: Record<string, "success" | "warning" | "danger"> = {
   published: "success",

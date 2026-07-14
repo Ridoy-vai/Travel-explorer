@@ -47,7 +47,7 @@ const columns = [
     { id: "actions", name: "Actions" },
 ];
 
-const API_BASE = "http://localhost:2000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000";
 
 export default function AgencyPackagesManager() {
     const { data: session } = authClient.useSession();

@@ -41,7 +41,7 @@ interface Filters {
   sort: string;
 }
 
-const API_BASE = "http://localhost:2000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const LIMIT = 12;
 
 // ✅ ছবি অনুযায়ী স্ট্যাটিক ক্যাটাগরি লিস্ট

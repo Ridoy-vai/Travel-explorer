@@ -41,7 +41,7 @@ const columns = [
   { id: "actions", name: "Verification Actions" },
 ];
 
-const API_BASE = "http://localhost:2000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000"; // ডিফল্টভাবে লোকালহোস্ট ব্যবহার করা হবে যদি এনভায়রনমেন্ট ভেরিয়েবল না থাকে
 
 export default function AdminAgencyVerification() {
   // মূল ডাটা + মেটা স্টেট
