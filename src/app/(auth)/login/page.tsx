@@ -44,7 +44,7 @@ export default function LoginForm() {
             const { data: loginData, error } = await authClient.signIn.email({
                 email,
                 password,
-                rememberMe,
+                rememberMe: true,
                 callbackURL: "/",
             });
 
