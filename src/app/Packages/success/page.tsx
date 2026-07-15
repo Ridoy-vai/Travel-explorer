@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { stripe } from '../../../lib/stripe'
-import BookingInvoice from '../../../components/BookingInvoice'
+// import BookingInvoice from '../../../components/BookingInvoice'
+import BookingInvoice from '@/components/BookingInvoice'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 
