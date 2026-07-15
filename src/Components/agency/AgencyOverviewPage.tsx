@@ -45,26 +45,55 @@ export function AgencyOverviewPage({ agencyId }: { agencyId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!agencyId) return;
+    // agencyId না থাকলে loading আটকে না রেখে সাথে সাথে বন্ধ করে দাও
+    if (!agencyId) {
+      setLoading(false);
+      setError("Agency ID not found.");
+      return;
+    }
+
+    let isCancelled = false;
 
     async function fetchOverview() {
       try {
         setLoading(true);
+        setError(null);
+
+        if (!BACKEND_BASE) {
+          throw new Error("NEXT_PUBLIC_API_URL is not set");
+        }
+
         const res = await fetch(`${BACKEND_BASE}/api/agency/${agencyId}/overview`, {
           cache: "no-store",
         });
-        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+
+        if (!res.ok) {
+          throw new Error(`Request failed: ${res.status}`);
+        }
+
         const json = await res.json();
-        setData(json.data);
+
+        if (!isCancelled) {
+          setData(json.data);
+        }
       } catch (err) {
         console.error("Failed to load overview:", err);
-        setError("Failed to load dashboard.");
+        if (!isCancelled) {
+          setError("Failed to load dashboard.");
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     }
 
     fetchOverview();
+
+    // cleanup: component unmount হলে বা agencyId পাল্টে গেলে পুরনো রেসপন্স ignore করো
+    return () => {
+      isCancelled = true;
+    };
   }, [agencyId]);
 
   if (loading) return <p className="text-sm text-muted p-6">Loading dashboard…</p>;

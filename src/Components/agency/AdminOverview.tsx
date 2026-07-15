@@ -124,7 +124,7 @@ export function AdminOverview() {
   const fetchOverview = async () => {
     setIsLoading(true);
     setErrorMsg("");
-
+    console.log("API_URL:", API_URL);
     try {
       const res = await fetch(`${API_URL}/api/admin/overview`);
       const json: OverviewResponse = await res.json();
