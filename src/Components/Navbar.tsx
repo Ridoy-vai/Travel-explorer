@@ -33,6 +33,13 @@ interface NavbarProps {
   onLogout?: () => void;
 }
 
+interface SessionUser {
+  name?: string;
+  email?: string;
+  image?: string | null;
+  role?: "admin" | "agency" | "traveler";
+}
+
 const toursItems: DropdownItem[] = [
   { label: "Machu Picchu Tours", href: "#" },
   { label: "Amazon Tours", href: "#" },
@@ -74,7 +81,7 @@ export default function Navbar({
   const pathname = usePathname();
   const isActive = (href: string) => pathname === href;
   const { data: session } = authClient.useSession();
-  const user = session?.user;
+  const user = session?.user as SessionUser | undefined;
   // console.log("Navbar session user:", user);
 
   const HandleSignOut = async () => {
@@ -230,7 +237,7 @@ export default function Navbar({
                     <img src={user.image} alt={user.name} className="h-9 w-9 rounded-full object-cover border-2 border-blue-500" />
                   ) : (
                     <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold border-2 border-blue-500">
-                      {user.name.charAt(0).toUpperCase()}
+                      {user.name?.charAt(0).toUpperCase() || "U"}
                     </div>
                   )}
                 </button>
@@ -307,7 +314,7 @@ export default function Navbar({
                   <img src={user.image} alt={user.name} className="h-9 w-9 rounded-full object-cover border-2 border-blue-500" />
                 ) : (
                   <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold border-2 border-blue-500">
-                    {user.name.charAt(0).toUpperCase()}
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 )}
               </button>
@@ -344,7 +351,7 @@ export default function Navbar({
                     <img src={user.image} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
                   ) : (
                     <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                      {user.name.charAt(0).toUpperCase()}
+                      {user.name?.charAt(0).toUpperCase() || "U"}
                     </div>
                   )}
                   <div className="truncate">

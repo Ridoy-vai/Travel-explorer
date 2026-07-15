@@ -127,7 +127,7 @@ export function AgencyBookingsSummaryTable({ agencyId }: { agencyId: string }) {
                 <Table.Cell className="pr-0" />
                 <Table.Cell>
                   <div className="flex items-center gap-3">
-                    <Avatar size="sm" radius="sm">
+                    <Avatar size="sm">
                       <Avatar.Image src={row.packageDetails?.coverImage} />
                       <Avatar.Fallback>
                         {row.packageDetails?.title?.slice(0, 2).toUpperCase() ?? "PK"}

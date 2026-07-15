@@ -302,10 +302,10 @@ export default function TravelerDashboardOverview() {
                             />
                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#94a3b8" }} />
                             <Tooltip
-                                formatter={(value: number) => [
-                                    formatCurrency(toDisplayAmount(value), stats.currency),
-                                    "Spent",
-                                ]}
+                                formatter={(value) => {
+                                    if (typeof value !== "number") return ["", ""];
+                                    return [formatCurrency(toDisplayAmount(value), stats.currency), "Spent"];
+                                }}
                                 contentStyle={{
                                     borderRadius: 12,
                                     border: "1px solid #e2e8f0",
@@ -344,7 +344,10 @@ export default function TravelerDashboardOverview() {
                                 ))}
                             </Pie>
                             <Tooltip
-                                formatter={(value: number, name: string) => [value, name]}
+                                formatter={(value, name) => {
+                                    if (typeof value !== "number") return ["", name ?? ""];
+                                    return [value, name ?? ""];
+                                }}
                                 contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }}
                             />
                             <Legend

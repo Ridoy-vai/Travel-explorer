@@ -1,13 +1,14 @@
 import { redirect } from 'next/navigation'
 import { stripe } from '../../../lib/stripe'
 // import BookingInvoice from '../../../components/BookingInvoice'
-import BookingInvoice from '@/components/BookingInvoice'
+import BookingInvoice from '@/Components/BookingInvoice'
+
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 
 const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000";
 
-async function getPackageDetails(packageId) {
+async function getPackageDetails(packageId: string) {
     try {
         const res = await fetch(`${BACKEND_BASE}/api/agency/packages/${packageId}`, {
             cache: 'no-store',
@@ -20,7 +21,23 @@ async function getPackageDetails(packageId) {
     }
 }
 
-async function saveBooking(payload) {
+type BookingPayload = {
+    sessionId: string;
+    travelerId: string;
+    invoiceId: string;
+    packageId: string;
+    agencyId?: string;
+    email: string;
+    adultCount?: string;
+    childCount?: string;
+    totalMale?: string;
+    totalFemale?: string;
+    totalChildPrice?: string;
+    totalAmount?: string | number | null;
+    currency?: string | null;
+};
+
+async function saveBooking(payload: BookingPayload) {
     try {
         const res = await fetch(`${BACKEND_BASE}/api/bookings`, {
             method: 'POST',
@@ -36,7 +53,13 @@ async function saveBooking(payload) {
     }
 }
 
-export default async function Success({ searchParams }) {
+type SuccessPageProps = {
+    searchParams: {
+        session_id?: string;
+    };
+};
+
+export default async function Success({ searchParams }: SuccessPageProps) {
     const session = await auth.api.getSession({
         headers: await headers(),
     });

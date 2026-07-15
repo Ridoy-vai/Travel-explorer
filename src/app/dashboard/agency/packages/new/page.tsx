@@ -347,7 +347,7 @@ export default function AddPackageForm() {
       return;
     }
 
-    const status = user.status === "approved" ? "published" : "unpublished";
+    const status = (user as any)?.status === "approved" ? "published" : "unpublished";
 
     const payload = {
       ...form,
@@ -365,10 +365,10 @@ export default function AddPackageForm() {
         .padStart(2, "0")}`, // "07:30"
       durationDays: duration.days,     // auto-calculated, sent for display convenience
       durationNights: duration.nights, // server re-derives & verifies this anyway
-      agencyId: user.id,
-      agencyName: user.name,
-      agencyEmail: user.email,
-      agencyPhone: (user as any).phone,
+      agencyId: user?.id ?? "",
+      agencyName: user?.name ?? "",
+      agencyEmail: user?.email ?? "",
+      agencyPhone: (user as any)?.phone ?? "",
     };
 
     setSubmitting(true);

@@ -204,36 +204,7 @@ export default function AgencyPackagesManager() {
 
                 {/* Tab Panel এর ভেতরে Table লোড করা */}
                 <Tabs.Panel className="pt-4" id={activeTab}>
-                    <Table
-                        aria-label="Agency tour packages dashboard table"
-                        bottomContent={
-                            totalPages > 1 ? (
-                                <div className="flex w-full justify-center gap-2">
-                                    <Button
-                                        isDisabled={page === 1}
-                                        size="sm"
-                                        variant="flat"
-                                        onPress={() => setPage((p) => Math.max(p - 1, 1))}
-                                    >
-                                        Previous
-                                    </Button>
-                                    <span className="flex items-center text-sm text-gray-600">
-                                        Page {page} of {totalPages}
-                                    </span>
-                                    <Button
-                                        isDisabled={page === totalPages}
-                                        size="sm"
-                                        variant="flat"
-                                        onPress={() =>
-                                            setPage((p) => Math.min(p + 1, totalPages))
-                                        }
-                                    >
-                                        Next
-                                    </Button>
-                                </div>
-                            ) : null
-                        }
-                    >
+                    <Table aria-label="Agency tour packages dashboard table">
                         <Table.ScrollContainer className="overflow-x-auto">
                             <Table.Content className="min-w-[800px]">
                                 <Table.Header>
@@ -244,133 +215,131 @@ export default function AgencyPackagesManager() {
                                     ))}
                                 </Table.Header>
 
-                                <Table.Body
-                                    emptyContent={
-                                        isLoading
-                                            ? "Loading..."
-                                            : "No packages found for this status."
-                                    }
-                                >
-                                    <Table.Collection items={items}>
-                                        {(item) => {
-                                            const packageId =
-                                                typeof item._id === "object"
-                                                    ? item._id.$oid
-                                                    : item._id;
-                                            const isBusy = actionLoadingId === packageId;
-                                            return (
-                                                <Table.Row key={packageId}>
-                                                    {/* Image Column */}
-                                                    <Table.Cell>
-                                                        <img
-                                                            src={item.coverImage}
-                                                            alt={item.title}
-                                                            className="w-16 h-10 object-cover rounded-md border"
-                                                        />
-                                                    </Table.Cell>
+                                <Table.Body>
+                                    {items.length === 0 ? (
+                                        <Table.Row>
+                                            <Table.Cell colSpan={columns.length} className="py-8 text-center text-muted">
+                                                {isLoading ? "Loading..." : "No packages found for this status."}
+                                            </Table.Cell>
+                                        </Table.Row>
+                                    ) : (
+                                        <Table.Collection items={items}>
+                                            {(item) => {
+                                                const packageId =
+                                                    typeof item._id === "object"
+                                                        ? item._id.$oid
+                                                        : item._id;
+                                                const isBusy = actionLoadingId === packageId;
+                                                return (
+                                                    <Table.Row key={packageId}>
+                                                        {/* Image Column */}
+                                                        <Table.Cell>
+                                                            <img
+                                                                src={item.coverImage}
+                                                                alt={item.title}
+                                                                className="w-16 h-10 object-cover rounded-md border"
+                                                            />
+                                                        </Table.Cell>
 
-                                                    {/* Title Column */}
-                                                    <Table.Cell className="font-medium text-gray-900">
-                                                        {item.title}
-                                                    </Table.Cell>
+                                                        {/* Title Column */}
+                                                        <Table.Cell className="font-medium text-gray-900">
+                                                            {item.title}
+                                                        </Table.Cell>
 
-                                                    {/* Destination Column */}
-                                                    <Table.Cell>{item.destination}</Table.Cell>
+                                                        {/* Destination Column */}
+                                                        <Table.Cell>{item.destination}</Table.Cell>
 
-                                                    {/* Category Column */}
-                                                    <Table.Cell>
-                                                        <Chip size="sm" variant="flat">
-                                                            {item.category}
-                                                        </Chip>
-                                                    </Table.Cell>
+                                                        {/* Category Column */}
+                                                        <Table.Cell>
+                                                            <Chip size="sm" variant="soft">
+                                                                {item.category}
+                                                            </Chip>
+                                                        </Table.Cell>
 
-                                                    {/* Price Column */}
-                                                    <Table.Cell>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-semibold">
-                                                                ${item.basePrice}
-                                                            </span>
-                                                            {item.discountPrice && (
-                                                                <span className="text-xs text-gray-400 line-through">
-                                                                    ${item.discountPrice}
+                                                        {/* Price Column */}
+                                                        <Table.Cell>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-semibold">
+                                                                    ${item.basePrice}
                                                                 </span>
-                                                            )}
-                                                        </div>
-                                                    </Table.Cell>
+                                                                {item.discountPrice && (
+                                                                    <span className="text-xs text-gray-400 line-through">
+                                                                        ${item.discountPrice}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </Table.Cell>
 
-                                                    {/* Status Column */}
-                                                    <Table.Cell>
-                                                        <Chip
-                                                            color={statusColorMap[item.status]}
-                                                            size="sm"
-                                                            variant="soft"
-                                                            className="capitalize"
-                                                        >
-                                                            {item.status}
-                                                        </Chip>
-                                                    </Table.Cell>
-
-                                                    {/* Actions Column */}
-                                                    <Table.Cell>
-                                                        <div className="flex items-center gap-2">
-                                                            <Link
-                                                                href={`/tours/Tourpackagedetailspage/${item._id}`}
-                                                                className="text-blue-600 hover:underline text-sm"
-                                                            >
-                                                                <Button
-                                                                    size="sm"
-                                                                    color="primary"
-                                                                    variant="flat"
-                                                                    isDisabled={isBusy}
-                                                                    onPress={() => handleEdit(packageId)}
-                                                                    onClick={() => console.log("rrrrrrrrrfe", packageId)}
-                                                                >
-                                                                    Edit
-                                                                </Button>
-                                                            </Link>
-
-                                                            {/* status অনুযায়ী Publish বা Unpublish বাটন দেখানো হচ্ছে */}
-                                                            {item.status === "published" ? (
-                                                                <Button
-                                                                    size="sm"
-                                                                    color="warning"
-                                                                    variant="flat"
-                                                                    isLoading={isBusy}
-                                                                    onPress={() =>
-                                                                        handleStatusChange(packageId, "unpublished")
-                                                                    }
-                                                                >
-                                                                    Unpublish
-                                                                </Button>
-                                                            ) : (
-                                                                <Button
-                                                                    size="sm"
-                                                                    color="success"
-                                                                    variant="flat"
-                                                                    isLoading={isBusy}
-                                                                    onPress={() =>
-                                                                        handleStatusChange(packageId, "published")
-                                                                    }
-                                                                >
-                                                                    Publish
-                                                                </Button>
-                                                            )}
-
-                                                            <Button
+                                                        {/* Status Column */}
+                                                        <Table.Cell>
+                                                            <Chip
+                                                                color={statusColorMap[item.status]}
                                                                 size="sm"
-                                                                color="danger"
-                                                                variant="flat"
-                                                                isLoading={isBusy}
-                                                                onPress={() => handleDelete(packageId)}
+                                                                variant="soft"
+                                                                className="capitalize"
                                                             >
-                                                                Delete
-                                                            </Button>
-                                                        </div>
-                                                    </Table.Cell>
-                                                </Table.Row>
-                                            );
-                                        }}
-                                    </Table.Collection>
+                                                                {item.status}
+                                                            </Chip>
+                                                        </Table.Cell>
+
+                                                        {/* Actions Column */}
+                                                        <Table.Cell>
+                                                            <div className="flex items-center gap-2">
+                                                                <Link
+                                                                    href={`/tours/Tourpackagedetailspage/${item._id}`}
+                                                                    className="text-blue-600 hover:underline text-sm"
+                                                                >
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="tertiary"
+                                                                        isDisabled={isBusy}
+                                                                        onPress={() => handleEdit(packageId)}
+                                                                        onClick={() => console.log("rrrrrrrrrfe", packageId)}
+                                                                    >
+                                                                        Edit
+                                                                    </Button>
+                                                                </Link>
+
+                                                                {/* status অনুযায়ী Publish বা Unpublish বাটন দেখানো হচ্ছে */}
+                                                                {item.status === "published" ? (
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="tertiary"
+                                                                        isDisabled={isBusy}
+                                                                        onPress={() =>
+                                                                            handleStatusChange(packageId, "unpublished")
+                                                                        }
+                                                                    >
+                                                                        Unpublish
+                                                                    </Button>
+                                                                ) : (
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="tertiary"
+                                                                        isDisabled={isBusy}
+                                                                        onPress={() =>
+                                                                            handleStatusChange(packageId, "published")
+                                                                        }
+                                                                    >
+                                                                        Publish
+                                                                    </Button>
+                                                                )}
+
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="tertiary"
+                                                                    isDisabled={isBusy}
+                                                                    onPress={() => handleDelete(packageId)}
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            </div>
+                                                        </Table.Cell>
+                                                    </Table.Row>
+                                                );
+                                            }}
+                                        </Table.Collection>
+                                    )}
                                 </Table.Body>
                             </Table.Content>
                         </Table.ScrollContainer>

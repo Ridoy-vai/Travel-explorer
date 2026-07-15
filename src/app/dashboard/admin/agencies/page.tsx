@@ -173,34 +173,7 @@ export default function AdminAgencyVerification() {
 
         {/* Tab Panel এর ভেতরে Table রেন্ডার */}
         <Tabs.Panel className="pt-4" id={activeTab}>
-          <Table
-            aria-label="Admin agency management table"
-            bottomContent={
-              totalPages > 1 ? (
-                <div className="flex w-full justify-center gap-2">
-                  <Button
-                    isDisabled={page === 1}
-                    size="sm"
-                    variant="flat"
-                    onPress={() => setPage((p) => Math.max(p - 1, 1))}
-                  >
-                    Previous
-                  </Button>
-                  <span className="flex items-center text-sm text-gray-600">
-                    Page {page} of {totalPages}
-                  </span>
-                  <Button
-                    isDisabled={page === totalPages}
-                    size="sm"
-                    variant="flat"
-                    onPress={() => setPage((p) => Math.min(p + 1, totalPages))}
-                  >
-                    Next
-                  </Button>
-                </div>
-              ) : null
-            }
-          >
+          <Table aria-label="Admin agency management table">
             <Table.ScrollContainer className="overflow-x-auto">
               <Table.Content className="min-w-[900px]">
                 <Table.Header>
@@ -211,13 +184,7 @@ export default function AdminAgencyVerification() {
                   ))}
                 </Table.Header>
 
-                <Table.Body
-                  emptyContent={
-                    isLoading
-                      ? "Loading..."
-                      : `No agencies found with '${activeTab}' status.`
-                  }
-                >
+                <Table.Body>
                   <Table.Collection items={agencies}>
                     {(agency) => {
                       const agencyId = typeof agency._id === "object" ? agency._id.$oid : agency._id;
@@ -263,7 +230,7 @@ export default function AdminAgencyVerification() {
                                 <>
                                   <Button
                                     size="sm"
-                                    color="success"
+                                    variant="primary"
                                     className="text-white font-medium"
                                     onPress={() => handleVerify(agencyId, "approved")}
                                   >
@@ -271,8 +238,7 @@ export default function AdminAgencyVerification() {
                                   </Button>
                                   <Button
                                     size="sm"
-                                    color="danger"
-                                    variant="flat"
+                                    variant="danger"
                                     onPress={() => handleVerify(agencyId, "rejected")}
                                   >
                                     Reject
@@ -282,8 +248,7 @@ export default function AdminAgencyVerification() {
                               {agency.status === "approved" && (
                                 <Button
                                   size="sm"
-                                  color="danger"
-                                  variant="bordered"
+                                  variant="danger"
                                   onPress={() => handleVerify(agencyId, "rejected")}
                                 >
                                   Suspend / Reject
@@ -292,8 +257,7 @@ export default function AdminAgencyVerification() {
                               {agency.status === "rejected" && (
                                 <Button
                                   size="sm"
-                                  color="success"
-                                  variant="bordered"
+                                  variant="primary"
                                   onPress={() => handleVerify(agencyId, "approved")}
                                 >
                                   Re-Approve
@@ -307,6 +271,31 @@ export default function AdminAgencyVerification() {
                   </Table.Collection>
                 </Table.Body>
               </Table.Content>
+              {totalPages > 1 && (
+                <Table.Footer className="px-4 py-3">
+                  <div className="flex w-full justify-center gap-2">
+                    <Button
+                      isDisabled={page === 1}
+                      size="sm"
+                      variant="secondary"
+                      onPress={() => setPage((p) => Math.max(p - 1, 1))}
+                    >
+                      Previous
+                    </Button>
+                    <span className="flex items-center text-sm text-gray-600">
+                      Page {page} of {totalPages}
+                    </span>
+                    <Button
+                      isDisabled={page === totalPages}
+                      size="sm"
+                      variant="secondary"
+                      onPress={() => setPage((p) => Math.min(p + 1, totalPages))}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </Table.Footer>
+              )}
             </Table.ScrollContainer>
           </Table>
         </Tabs.Panel>

@@ -75,7 +75,7 @@ export function AgencyOverviewPage({ agencyId }: { agencyId: string }) {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Overview</h1>
-        <p className="text-sm text-muted">Snapshot of your agency's performance.</p>
+        <p className="text-sm text-muted">Snapshot of your agencys performance.</p>
       </div>
 
       {/* Stat cards */}
@@ -121,7 +121,7 @@ export function AgencyOverviewPage({ agencyId }: { agencyId: string }) {
             {data.topPackages.map((pkg, i) => (
               <div key={pkg._id} className="flex items-center gap-3">
                 <span className="text-xs text-muted w-4">{i + 1}</span>
-                <Avatar size="sm" radius="sm">
+                <Avatar size="sm">
                   <Avatar.Image src={pkg.packageDetails?.coverImage} />
                   <Avatar.Fallback>
                     {pkg.packageDetails?.title?.slice(0, 2).toUpperCase() ?? "PK"}

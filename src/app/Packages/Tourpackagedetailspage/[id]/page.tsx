@@ -343,7 +343,7 @@ export default function TourPackageDetailsPage({
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <Chip
               size="sm"
-              variant="flat"
+              variant="soft"
               className="bg-[#C9A227]/90 text-[#12332E] font-semibold capitalize"
             >
               {pkg.category}
@@ -351,7 +351,7 @@ export default function TourPackageDetailsPage({
             <Chip
               size="sm"
               color={statusColorMap[pkg.status]}
-              variant="flat"
+              variant="soft"
               className="capitalize font-medium"
             >
               {pkg.status}
@@ -359,7 +359,7 @@ export default function TourPackageDetailsPage({
             {hasDiscount && (
               <Chip
                 size="sm"
-                variant="flat"
+                variant="soft"
                 className="bg-[#B4453D] text-white font-semibold"
               >
                 {discountPercent}% OFF
@@ -527,7 +527,7 @@ export default function TourPackageDetailsPage({
                   <Chip
                     key={i}
                     size="sm"
-                    variant="flat"
+                    variant="soft"
                     className="bg-[#EFEBDD] text-[#6B6459] capitalize"
                   >
                     #{tag}
@@ -565,8 +565,7 @@ export default function TourPackageDetailsPage({
 
               {!showBookingForm ? (
                 <Button
-                  className="w-full mt-5 bg-[#C9A227] text-[#12332E] font-semibold hover:bg-[#DBB53B]"
-                  radius="sm"
+                  className="w-full mt-5 rounded-md bg-[#C9A227] text-[#12332E] font-semibold hover:bg-[#DBB53B]"
                   onPress={() => setShowBookingForm(true)}
                 >
                   Contact agency to book
@@ -712,8 +711,7 @@ export default function TourPackageDetailsPage({
                     <input type="hidden" name="totalMale" value={maleCount} />
                     <Button
                       type="submit"
-                      className="w-full bg-[#C9A227] text-[#12332E] font-semibold hover:bg-[#DBB53B]"
-                      radius="sm"
+                      className="w-full rounded-md bg-[#C9A227] text-[#12332E] font-semibold hover:bg-[#DBB53B]"
                     >
                       Confirm & Contact Agency
                     </Button>

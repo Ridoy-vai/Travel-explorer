@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-type Role = "traveler" | "agency";
+type Role = "admin" | "traveler" | "agency";
 type Status = "active" | "blocked";
 
 interface User {
@@ -272,7 +272,7 @@ export function AdminUserManagement() {
                         <div className="flex items-center gap-1 justify-end">
                           <Button
                             size="sm"
-                            variant={isBlocked ? "success-soft" : "warning-soft"}
+                            variant={isBlocked ? "secondary" : "danger"}
                             isDisabled={isBusy}
                             onClick={() => toggleBlock(user._id, user.status)}
                           >

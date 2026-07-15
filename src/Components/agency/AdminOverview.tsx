@@ -199,11 +199,12 @@ export function AdminOverview() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="month" fontSize={12} tickLine={false} />
-              <YAxis fontSize={12} tickLine={false} tickFormatter={(v) => formatMoney(v)} width={80} />
+              <YAxis fontSize={12} tickLine={false} tickFormatter={(v) => formatMoney(v as number)} width={80} />
               <Tooltip
-                formatter={(value: number, name: string) =>
-                  name === "revenue" ? [formatMoney(value), "Revenue"] : [value, "Bookings"]
-                }
+                formatter={(value) => {
+                  const numericValue = typeof value === "number" ? value : 0;
+                  return [formatMoney(numericValue), "Revenue"];
+                }}
               />
               <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={2} fill="url(#revenueFill)" />
             </AreaChart>
@@ -229,10 +230,13 @@ export function AdminOverview() {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number, name: string) => [
-                  `${value} (${Math.round((value / totalUsersForPercent) * 100)}%)`,
-                  name,
-                ]}
+                formatter={(value, name) => {
+                  const numericValue = typeof value === "number" ? value : 0;
+                  return [
+                    `${numericValue} (${Math.round((numericValue / totalUsersForPercent) * 100)}%)`,
+                    name as string,
+                  ];
+                }}
               />
               <Legend />
             </PieChart>

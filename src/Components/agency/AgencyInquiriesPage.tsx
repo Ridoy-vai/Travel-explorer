@@ -140,7 +140,6 @@ export function AgencyInquiriesPage({ agencyId }: { agencyId: string }) {
                                                         size="sm"
                                                         variant="tertiary"
                                                         onPress={() => updateStatus(inq._id, "contacted")}
-                                                        title="Mark as contacted"
                                                     >
                                                         <Icon className="size-4" icon="gravity-ui:check" />
                                                     </Button>
@@ -151,13 +150,12 @@ export function AgencyInquiriesPage({ agencyId }: { agencyId: string }) {
                                                         size="sm"
                                                         variant="danger-soft"
                                                         onPress={() => updateStatus(inq._id, "closed")}
-                                                        title="Close inquiry"
                                                     >
                                                         <Icon className="size-4" icon="gravity-ui:xmark" />
                                                     </Button>
                                                 )}
                                                 <a href={`mailto:${inq.email}`}>
-                                                    <Button isIconOnly size="sm" variant="tertiary" title="Email">
+                                                    <Button isIconOnly size="sm" variant="tertiary">
                                                         <Icon className="size-4" icon="gravity-ui:envelope" />
                                                     </Button>
                                                 </a>

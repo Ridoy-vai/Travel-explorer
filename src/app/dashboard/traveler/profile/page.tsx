@@ -11,5 +11,13 @@ export default async function post() {
     // ⚠️ replace with actual logged-in traveler's ID from your auth/session
     const travelerId = session?.user?.id;
 
+    if (!travelerId) {
+        return (
+            <div className="py-16 text-center text-muted">
+                We could not determine your traveler ID. Please sign in and try again.
+            </div>
+        );
+    }
+
     return <TravelerProfilePage travelerId={travelerId} />;
 }

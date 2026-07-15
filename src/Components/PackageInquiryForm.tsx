@@ -57,33 +57,36 @@ export function PackageInquiryForm({
 
     return (
         <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto flex flex-col gap-3">
+            <label className="text-sm font-semibold">Your Name</label>
             <Input
-                label="Your Name"
+                required
                 value={form.name}
-                onValueChange={(v) => handleChange("name", v)}
-                isRequired
+                onChange={(e) => handleChange("name", (e.target as HTMLInputElement).value)}
                 className="w-full"
             />
+
+            <label className="text-sm font-semibold">Email</label>
             <Input
-                label="Email"
+                required
                 type="email"
                 value={form.email}
-                onValueChange={(v) => handleChange("email", v)}
-                isRequired
+                onChange={(e) => handleChange("email", (e.target as HTMLInputElement).value)}
                 className="w-full"
             />
+
+            <label className="text-sm font-semibold">Phone</label>
             <Input
-                label="Phone"
+                required
                 type="tel"
                 value={form.phone}
-                onValueChange={(v) => handleChange("phone", v)}
-                isRequired
+                onChange={(e) => handleChange("phone", (e.target as HTMLInputElement).value)}
                 className="w-full"
             />
+
+            <label className="text-sm font-semibold">Message (optional)</label>
             <TextArea
-                label="Message (optional)"
                 value={form.message}
-                onValueChange={(v) => handleChange("message", v)}
+                onChange={(e) => handleChange("message", (e.target as HTMLTextAreaElement).value)}
                 placeholder="Any specific questions about this tour?"
                 className="w-full"
             />
@@ -91,8 +94,7 @@ export function PackageInquiryForm({
             <Button
                 type="submit"
                 isDisabled={submitting}
-                className="w-full bg-[#C9A227] text-[#12332E] font-semibold hover:bg-[#DBB53B]"
-                radius="sm"
+                className="w-full rounded-md bg-[#C9A227] text-[#12332E] font-semibold hover:bg-[#DBB53B]"
             >
                 {submitting ? "Sending…" : "Send Inquiry"}
             </Button>

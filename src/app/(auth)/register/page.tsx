@@ -61,7 +61,7 @@ export default function RegisterForm() {
 
     const onSubmit: SubmitHandler<IRegisterInput> = async (data) => {
         try {
-            const { data: signUpData, error } = await authClient.signUp.email({
+            const signUpPayload = {
                 email: data.email,
                 password: data.password,
                 name: userRole === "traveler" ? data.fullName! : data.agencyName!,
@@ -71,7 +71,9 @@ export default function RegisterForm() {
                 operatingRegion: userRole === "agency" ? data.operatingRegion : undefined,
                 // এখানে স্ট্যাটাস লজিকটি যোগ করা হলো
                 status: userRole === "agency" ? "pending" : "active",
-            });
+            } as any;
+
+            const { data: signUpData, error } = await authClient.signUp.email(signUpPayload);
 
             if (error) {
                 console.error("Sign up error:", error.message);

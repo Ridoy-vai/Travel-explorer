@@ -95,7 +95,7 @@ export function AgencyEarningsPage({ agencyId }: { agencyId: string }) {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Earnings</h1>
-        <p className="text-sm text-muted">Overview of your agency's revenue and bookings.</p>
+        <p className="text-sm text-muted">Overview of your agencys revenue and bookings.</p>
       </div>
 
       {/* Stat cards */}
@@ -146,7 +146,9 @@ export function AgencyEarningsPage({ agencyId }: { agencyId: string }) {
               tickFormatter={(v) => `$${v}`}
             />
             <Tooltip
-              formatter={(value: number) => formatCurrency(value)}
+              formatter={(value) =>
+                typeof value === "number" ? formatCurrency(value) : ""
+              }
               contentStyle={{ borderRadius: 8, border: "1px solid #eee" }}
             />
             <Area
@@ -177,7 +179,7 @@ export function AgencyEarningsPage({ agencyId }: { agencyId: string }) {
                   <Table.Row key={pkg._id} id={pkg._id}>
                     <Table.Cell>
                       <div className="flex items-center gap-3">
-                        <Avatar size="sm" radius="sm">
+                        <Avatar size="sm">
                           <Avatar.Image src={pkg.packageDetails?.coverImage} />
                           <Avatar.Fallback>
                             {pkg.packageDetails?.title?.slice(0, 2).toUpperCase() ?? "PK"}

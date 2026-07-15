@@ -301,8 +301,7 @@ export default function TravelerProfilePage({ travelerId: usertravelerId   }: { 
                             {!isEditing && (
                                 <Button
                                     size="sm"
-                                    radius="sm"
-                                    className="ml-auto bg-[#C9A227] text-[#14213D] font-semibold px-5 hover:bg-[#DBB53B]"
+                                    className="ml-auto rounded-sm bg-[#C9A227] text-[#14213D] font-semibold px-5 hover:bg-[#DBB53B]"
                                     onPress={() => setIsEditing(true)}
                                 >
                                     Edit profile
@@ -341,7 +340,7 @@ export default function TravelerProfilePage({ travelerId: usertravelerId   }: { 
                                         Full name
                                     </label>
                                     <Input
-                                        isRequired
+                                        required
                                         id="name"
                                         name="name"
                                         autoComplete="name"
@@ -357,7 +356,7 @@ export default function TravelerProfilePage({ travelerId: usertravelerId   }: { 
                                         Email address (fixed)
                                     </label>
                                     <Input
-                                        isDisabled
+                                        disabled
                                         id="email"
                                         name="email"
                                         autoComplete="email"
@@ -372,7 +371,7 @@ export default function TravelerProfilePage({ travelerId: usertravelerId   }: { 
                                         Phone number
                                     </label>
                                     <Input
-                                        isRequired
+                                        required
                                         id="phone"
                                         name="phone"
                                         autoComplete="tel"
@@ -388,7 +387,7 @@ export default function TravelerProfilePage({ travelerId: usertravelerId   }: { 
                                     <label className="text-[11px] font-semibold text-[#9A9484] uppercase tracking-[0.12em] block mb-2">
                                         Member since
                                     </label>
-                                    <Input isDisabled value={memberSince || "—"} />
+                                    <Input disabled value={memberSince || "—"} />
                                 </span>
                             </div>
                         ) : (
@@ -409,22 +408,19 @@ export default function TravelerProfilePage({ travelerId: usertravelerId   }: { 
                     {isEditing && (
                         <div className="flex items-center justify-end gap-3 px-8 py-5 border-t border-[#EEEAE0] bg-[#FCFBF8] rounded-b-2xl">
                             <Button
-                                variant="light"
-                                radius="sm"
-                                className="font-medium text-[#6B6459]"
+                                variant="tertiary"
+                                className="font-medium text-[#6B6459] rounded-sm"
                                 onPress={handleCancel}
                                 isDisabled={isSaving}
                             >
                                 Cancel
                             </Button>
                             <Button
-                                radius="sm"
-                                className="bg-[#14213D] text-white font-medium px-6 hover:bg-[#1E2C4F]"
+                                className="bg-[#14213D] text-white font-medium px-6 hover:bg-[#1E2C4F] rounded-sm"
                                 onPress={handleSave}
-                                isLoading={isSaving}
-                                isDisabled={isUploadingAvatar}
+                                isDisabled={isSaving || isUploadingAvatar}
                             >
-                                Save changes
+                                {isSaving ? "Saving…" : "Save changes"}
                             </Button>
                         </div>
                     )}

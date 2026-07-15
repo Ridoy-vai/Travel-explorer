@@ -314,9 +314,12 @@ export function AdminFinance() {
                   <XAxis dataKey="month" fontSize={12} tickLine={false} />
                   <YAxis fontSize={12} tickLine={false} tickFormatter={(v) => formatMoney(v)} width={80} />
                   <Tooltip
-                    formatter={(value: number, name: string) =>
-                      name === "revenue" ? [formatMoney(value), "Revenue"] : [value, "Bookings"]
-                    }
+                    formatter={(value, name) => {
+                      const formattedValue = typeof value === "number" ? formatMoney(value) : String(value ?? "");
+                      return name === "revenue"
+                        ? [formattedValue, "Revenue"]
+                        : [formattedValue, "Bookings"];
+                    }}
                   />
                   <Area type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} fill="url(#financeRevenueFill)" />
                 </AreaChart>
@@ -333,9 +336,14 @@ export function AdminFinance() {
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={summary.revenueByAgency} layout="vertical" margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" fontSize={12} tickFormatter={(v) => formatMoney(v)} />
+                    <XAxis type="number" fontSize={12} tickFormatter={(v) => formatMoney(v as number)} />
                     <YAxis dataKey="agency" type="category" fontSize={12} width={120} tickLine={false} />
-                    <Tooltip formatter={(value: number) => formatMoney(value)} />
+                    <Tooltip
+                      formatter={(value) => {
+                        if (typeof value !== "number") return "";
+                        return formatMoney(value);
+                      }}
+                    />
                     <Bar dataKey="revenue" radius={[0, 6, 6, 0]}>
                       {summary.revenueByAgency.map((entry, i) => (
                         <Cell key={entry.agency} fill={AGENCY_COLORS[i % AGENCY_COLORS.length]} />

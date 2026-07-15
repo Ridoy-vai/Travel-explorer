@@ -306,7 +306,7 @@ export default function AgencyProfilePage() {
               {!isEditing && (
                 <Button
                   size="sm"
-                  radius="sm"
+                  variant="primary"
                   className="ml-auto bg-[#C9A227] text-[#14213D] font-semibold px-5 hover:bg-[#DBB53B]"
                   onPress={() => setIsEditing(true)}
                 >
@@ -346,7 +346,7 @@ export default function AgencyProfilePage() {
                     Agency name
                   </label>
                   <Input
-                    isRequired
+                    required
                     id="name"
                     name="name"
                     autoComplete="organization"
@@ -362,7 +362,7 @@ export default function AgencyProfilePage() {
                     Email address (fixed)
                   </label>
                   <Input
-                    isDisabled
+                    disabled
                     id="email"
                     name="email"
                     autoComplete="email"
@@ -377,7 +377,7 @@ export default function AgencyProfilePage() {
                     Phone number
                   </label>
                   <Input
-                    isRequired
+                    required
                     id="phone"
                     name="phone"
                     autoComplete="tel"
@@ -394,12 +394,12 @@ export default function AgencyProfilePage() {
                     Trade license number
                   </label>
                   <Input
-                    isRequired
+                    required
                     id="tradeLicense"
                     name="tradeLicense"
                     autoComplete="off"
                     placeholder="Enter trade license"
-                    classNames={{ input: "font-mono" }}
+                    className="font-mono"
                     value={formData.tradeLicense || ""}
                     onChange={(e) => handleChange("tradeLicense", e.target.value)}
                   />
@@ -497,8 +497,7 @@ export default function AgencyProfilePage() {
           {isEditing && (
             <div className="flex items-center justify-end gap-3 px-8 py-5 border-t border-[#EEEAE0] bg-[#FCFBF8] rounded-b-2xl">
               <Button
-                variant="light"
-                radius="sm"
+                variant="secondary"
                 className="font-medium text-[#6B6459]"
                 onPress={handleCancel}
                 isDisabled={isSaving}
@@ -506,13 +505,12 @@ export default function AgencyProfilePage() {
                 Cancel
               </Button>
               <Button
-                radius="sm"
+                variant="primary"
                 className="bg-[#14213D] text-white font-medium px-6 hover:bg-[#1E2C4F]"
                 onPress={handleSave}
-                isLoading={isSaving}
-                isDisabled={isUploadingLogo}
+                isDisabled={isSaving || isUploadingLogo}
               >
-                Save changes
+                {isSaving ? "Saving…" : "Save changes"}
               </Button>
             </div>
           )}

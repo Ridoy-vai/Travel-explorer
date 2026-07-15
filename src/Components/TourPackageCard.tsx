@@ -102,7 +102,7 @@ export default function TourPackageCard({
         <div className="absolute top-4 left-4 flex flex-wrap gap-2">
           <Chip
             size="sm"
-            variant="flat"
+            variant="soft"
             className="bg-[#C9A227]/90 text-[#12332E] font-semibold capitalize"
           >
             {pkg.category}
@@ -110,7 +110,7 @@ export default function TourPackageCard({
           {hasDiscount && (
             <Chip
               size="sm"
-              variant="flat"
+              variant="soft"
               className="bg-[#B4453D] text-white font-semibold"
             >
               Sale
