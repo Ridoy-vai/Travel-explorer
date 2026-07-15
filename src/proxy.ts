@@ -11,6 +11,7 @@ export async function proxy(request: NextRequest) {
   // Cookie-only check — does NOT touch the DB or load the Better Auth adapter
   const sessionCookie = getSessionCookie(request);
 
+  
   // Logged-in users shouldn't see /login or /register
   if (AUTH_ROUTES.includes(pathname)) {
     if (sessionCookie) {
