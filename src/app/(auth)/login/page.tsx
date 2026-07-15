@@ -52,7 +52,7 @@ export default function LoginForm() {
 
             if (error) {
                 if (error.status === 403) {
-                   
+
                     toast.error(
                         <div>
                             Email not verified.
@@ -87,6 +87,11 @@ export default function LoginForm() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+    const googlesignin = async () => {
+        const data = await authClient.signIn.social({
+            provider: "google",
+        });
     };
 
     return (
@@ -189,7 +194,7 @@ export default function LoginForm() {
 
                         {/* Social Logins */}
                         <div className="grid grid-cols-5 gap-2">
-                            <button type="button" aria-label="Login with Google" className="flex items-center justify-center py-2.5 rounded-xl border border-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-500 hover:border-red-200 transition-all group">
+                            <button onClick={googlesignin} type="button" aria-label="Login with Google" className="flex items-center justify-center py-2.5 rounded-xl border border-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-500 hover:border-red-200 transition-all group">
                                 <FaGoogle size={16} className="group-hover:scale-110 transition-transform" />
                             </button>
                             <button type="button" aria-label="Login with Facebook" className="flex items-center justify-center py-2.5 rounded-xl border border-gray-100 hover:bg-blue-50 text-gray-600 hover:text-blue-600 hover:border-blue-200 transition-all group">

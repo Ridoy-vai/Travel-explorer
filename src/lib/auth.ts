@@ -9,7 +9,12 @@ const db = client.db("Travel-Explore");
 export const auth = betterAuth({
     database: mongodbAdapter(db, {
         client
-    }),
+    }), socialProviders: {
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+        }
+    },
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: true,

@@ -100,6 +100,12 @@ export default function RegisterForm() {
         setShowConfirmPassword(false);
     };
 
+    const googlesignin = async () => {
+        const data = await authClient.signIn.social({
+            provider: "google",
+        });
+    };
+
     return (
         <div className="max-w-5xl w-full mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden font-sans my-10 border border-gray-100">
 
@@ -269,7 +275,7 @@ export default function RegisterForm() {
 
                         {/* 5 Social Sign-Up Icons Grid */}
                         <div className="grid grid-cols-5 gap-2">
-                            <button type="button" aria-label="Sign up with Google" className="flex items-center justify-center py-2 rounded-xl border border-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-500 hover:border-red-200 transition-all group">
+                            <button onClick={googlesignin} type="button" aria-label="Sign up with Google" className="flex items-center justify-center py-2 rounded-xl border border-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-500 hover:border-red-200 transition-all group">
                                 <FaGoogle size={14} className="group-hover:scale-110 transition-transform" />
                             </button>
                             <button type="button" aria-label="Sign up with Facebook" className="flex items-center justify-center py-2 rounded-xl border border-gray-100 hover:bg-blue-50 text-gray-600 hover:text-blue-600 hover:border-blue-200 transition-all group">
