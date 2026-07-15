@@ -209,7 +209,7 @@ export default function LoginForm() {
 
                     {/* Prompt Sign up link */}
                     <div className="text-center text-xs text-gray-500 pt-6 border-t border-gray-100 mt-6">
-                        Don't have an account?{" "}
+                        Dont have an account?{" "}
                         <Link href="/register" className="text-blue-600 font-bold hover:underline">Create Account</Link>
                     </div>
                 </div>
