@@ -17,7 +17,7 @@ import { Check, Footprints, Gem, type LucideIcon } from "lucide-react";
  */
 
 const ROTATE_INTERVAL_MS = 5000; // 5 seconds
-const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000";
+const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 interface TourPackage {
   _id: string;

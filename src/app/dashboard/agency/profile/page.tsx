@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button, Input } from "@heroui/react";
+import { authClient } from "@/lib/auth-client";
 
 // এজেন্সি ডাটার ইন্টারফেস
 interface AgencyProfile {
@@ -20,8 +21,7 @@ interface AgencyProfile {
   description?: string;
 }
 
-const API_BASE = "http://localhost:2000";
-const AGENCY_ID = "6a51413047a97e4de49b1706"; // আপনার dynamic agencyId / auth session থেকে বসাবেন
+const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 // ImgBB API কী — .env এ NEXT_PUBLIC_IMGBB_API_KEY হিসেবে রাখুন, imgbb.com থেকে ফ্রি কী নেওয়া যায়
 const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "";
@@ -49,8 +49,18 @@ const statusMeta: Record<
     text: "text-[#B4453D]",
   },
 };
+interface SessionUser {
+  name?: string;
+  email?: string;
+  image?: string | null;
+  role?: "admin" | "agency" | "traveler";
+  id?: string;
+}
 
 export default function AgencyProfilePage() {
+  const { data: session } = authClient.useSession();
+  const user = session?.user as SessionUser || undefined;
+  const AGENCY_ID = user.id; // আপনার dynamic agencyId / auth session থেকে বসাবেন
   const [profile, setProfile] = useState<AgencyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -483,9 +493,8 @@ export default function AgencyProfilePage() {
                 />
               ) : (
                 <p
-                  className={`text-sm leading-relaxed rounded-xl bg-[#FAF9F5] border border-[#EEEAE0] p-4 ${
-                    profile.description ? "text-[#3E3B34]" : "text-[#9A9484] italic"
-                  }`}
+                  className={`text-sm leading-relaxed rounded-xl bg-[#FAF9F5] border border-[#EEEAE0] p-4 ${profile.description ? "text-[#3E3B34]" : "text-[#9A9484] italic"
+                    }`}
                 >
                   {profile.description ||
                     "No description added yet — tell travelers what makes your packages worth booking."}
@@ -552,9 +561,8 @@ function DataRow({
         </a>
       ) : (
         <span
-          className={`block text-[15px] break-words ${
-            mono ? "font-mono tracking-tight" : "font-normal"
-          } ${value ? "text-[#14213D]" : "text-[#B3ADA0] italic"}`}
+          className={`block text-[15px] break-words ${mono ? "font-mono tracking-tight" : "font-normal"
+            } ${value ? "text-[#14213D]" : "text-[#B3ADA0] italic"}`}
         >
           {value || placeholder}
         </span>

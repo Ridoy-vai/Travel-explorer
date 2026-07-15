@@ -17,7 +17,7 @@ interface TravelerProfile {
     updatedAt?: { $date: string } | string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 // ImgBB API কী — .env এ NEXT_PUBLIC_IMGBB_API_KEY হিসেবে রাখুন
 const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "";

@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '../../../lib/stripe'
-import { auth } from '../../../lib/auth' // ⚠️ adjust this path to wherever your auth instance actually lives
+// import { auth } from '../../../lib/auth' // ⚠️ adjust this path to wherever your auth instance actually lives
 
 export async function POST(request) {
     const headersList = await headers()
 
-    const usersession = await auth.api.getSession({
-        headers: headersList,
-    })
+    // const usersession = await auth.api.getSession({
+    //     headers: headersList,
+    // })
 
-    // Optional but recommended: block unauthenticated checkouts
-    if (!usersession) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // // Optional but recommended: block unauthenticated checkouts
+    // if (!usersession) {
+    //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // }
 
     try {
         const origin = headersList.get('origin')

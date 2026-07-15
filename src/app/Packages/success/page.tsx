@@ -6,7 +6,7 @@ import BookingInvoice from '@/Components/BookingInvoice'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 
-const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000";
+const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 async function getPackageDetails(packageId: string) {
     try {

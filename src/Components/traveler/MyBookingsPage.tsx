@@ -4,7 +4,7 @@ import { Button, Chip } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { useEffect, useState, useRef, useCallback } from "react";
 
-const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000";
+const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL;
 const LIMIT = 6;
 
 const statusColorMap: Record<string, "success" | "danger" | "warning"> = {
