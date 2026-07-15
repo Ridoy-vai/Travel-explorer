@@ -1,9 +1,9 @@
-import { AdminOverview } from '@/Components/agency/AdminOverview';
+import { AdminFinance } from '@/Components/admin/AdminFinance';
 import React from 'react';
 
 const page = () => {
     return (
-       <AdminOverview/>
+        <AdminFinance />
     );
 };
 

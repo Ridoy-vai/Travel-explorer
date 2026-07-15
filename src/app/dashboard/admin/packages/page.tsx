@@ -1,9 +1,10 @@
-import { AdminOverview } from '@/Components/agency/AdminOverview';
 import React from 'react';
 
 const page = () => {
     return (
-       <AdminOverview/>
+        <div>
+            Coming Soon
+        </div>
     );
 };
 
