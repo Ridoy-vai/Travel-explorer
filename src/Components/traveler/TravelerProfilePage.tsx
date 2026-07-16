@@ -51,7 +51,7 @@ function formatDate(value?: { $date: string } | string) {
     return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
-export default function TravelerProfilePage({ travelerId: usertravelerId   }: { travelerId: string }) {
+export default function TravelerProfilePage({ travelerId: usertravelerId, token }: { travelerId: string, token: string | null }) {
     // const TRAVELER_ID = travelerId // আপনার dynamic travelerId / auth session থেকে বসাবেন
     const [profile, setProfile] = useState<TravelerProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +67,12 @@ export default function TravelerProfilePage({ travelerId: usertravelerId   }: { 
         setIsLoading(true);
         setError(null);
         try {
-            const res = await fetch(`${API_BASE}/api/traveler/profile/${usertravelerId}`);
+            const res = await fetch(`${API_BASE}/api/traveler/profile/${usertravelerId}`,{
+                headers: {
+                    // "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
             const result = await res.json();
             if (result.success) {
                 setProfile(result.data);
@@ -144,7 +149,10 @@ export default function TravelerProfilePage({ travelerId: usertravelerId   }: { 
         try {
             const res = await fetch(`${API_BASE}/api/traveler/profile/${usertravelerId}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
                 body: JSON.stringify({
                     name: formData.name,
                     phone: formData.phone,

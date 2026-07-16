@@ -112,9 +112,8 @@ function StatusBadge({ status }: { status: string }) {
     };
     return (
         <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${
-                styles[status] || "bg-gray-50 text-gray-500 border-gray-200"
-            }`}
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${styles[status] || "bg-gray-50 text-gray-500 border-gray-200"
+                }`}
         >
             {status}
         </span>
@@ -124,7 +123,7 @@ function StatusBadge({ status }: { status: string }) {
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
-export default function TravelerDashboardOverview() {
+export default function TravelerDashboardOverview({ token }: { token: string | null }) {
     const { data: session } = authClient.useSession();
     const travelerId = session?.user?.id;
 
@@ -143,7 +142,12 @@ export default function TravelerDashboardOverview() {
             try {
                 const res = await fetch(
                     `${process.env.NEXT_PUBLIC_API_URL}/api/travelers/${travelerId}/dashboard-overview`,
-                    { credentials: "include", signal: controller.signal }
+                    {
+                        credentials: "include", signal: controller.signal, headers: {
+                            // "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
 
                 if (!res.ok) {

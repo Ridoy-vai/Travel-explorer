@@ -68,7 +68,7 @@ function formatDate(dateValue?: string | null) {
     return d.toLocaleDateString("en-GB");
 }
 
-export function MyBookingsPage({ travelerId }: { travelerId: string }) {
+export function MyBookingsPage({ travelerId, token }: { travelerId: string, token: string | null }) {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState<PaginationInfo | null>(null);
@@ -92,7 +92,13 @@ export function MyBookingsPage({ travelerId }: { travelerId: string }) {
                 });
                 const res = await fetch(
                     `${BACKEND_BASE}/api/travelers/${travelerId}/bookings?${params.toString()}`,
-                    { cache: "no-store" }
+                    {
+                        cache: "no-store",
+                        headers: {
+                            //   "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
                 );
                 if (!res.ok) throw new Error(`Request failed: ${res.status}`);
                 const json = await res.json();
