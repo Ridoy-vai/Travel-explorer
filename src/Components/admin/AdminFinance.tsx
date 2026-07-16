@@ -156,7 +156,7 @@ function exportToCSV(transactions: Transaction[]) {
   URL.revokeObjectURL(url);
 }
 
-export function AdminFinance() {
+export function AdminFinance({ token }: { token: string | null }) {
   // ---- Summary state ----
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [isSummaryLoading, setIsSummaryLoading] = useState(true);
@@ -177,7 +177,12 @@ export function AdminFinance() {
     setIsSummaryLoading(true);
     setSummaryError("");
     try {
-      const res = await fetch(`${API_URL}/api/admin/finance/summary`);
+      const res = await fetch(`${API_URL}/api/admin/finance/summary`, {
+        headers: {
+          // "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const json: SummaryResponse = await res.json();
 
       if (!res.ok || !json.success) {
@@ -202,7 +207,12 @@ export function AdminFinance() {
       const params = new URLSearchParams({ page: String(page), limit: "10", status: statusFilter });
       if (search) params.set("search", search);
 
-      const res = await fetch(`${API_URL}/api/admin/finance/transactions?${params.toString()}`);
+      const res = await fetch(`${API_URL}/api/admin/finance/transactions?${params.toString()}`, {
+        headers: {
+          // "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const json: TransactionsResponse = await res.json();
 
       if (!res.ok || !json.success) {

@@ -1,5 +1,6 @@
 "use client";
 
+// import { getUserToken } from "@/lib/session";
 import { Avatar, Button, Chip, Table } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
@@ -60,7 +61,7 @@ function getInitials(name = ""): string {
   );
 }
 
-export function AdminUserManagement() {
+export function AdminUserManagement({ token }: { token: string | null }) {
   const [activeTab, setActiveTab] = useState<Role>("traveler");
   const [page, setPage] = useState(1);
   const [users, setUsers] = useState<User[]>([]);
@@ -77,7 +78,16 @@ export function AdminUserManagement() {
 
     try {
       const endpoint = tabs.find((t) => t.key === activeTab)?.endpoint;
-      const res = await fetch(`${API_URL}/api/admin/allusers/${endpoint}?page=${page}&limit=10`);
+
+
+      const res = await fetch(`${API_URL}/api/admin/allusers/${endpoint}?page=${page}&limit=10`, {
+        headers: token
+          ? {
+            Authorization: `Bearer ${token}`,
+          }
+          : {},
+      }
+      );
       const json: UsersResponse = await res.json();
 
       if (!res.ok || !json.success) {
@@ -115,7 +125,10 @@ export function AdminUserManagement() {
     try {
       const res = await fetch(`${API_URL}/api/admin/allusers/${userId}/role`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ role: newRole }),
       });
       const json: ActionResponse = await res.json();
@@ -141,7 +154,10 @@ export function AdminUserManagement() {
     try {
       const res = await fetch(`${API_URL}/api/admin/allusers/${userId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ status: newStatus }),
       });
       const json: ActionResponse = await res.json();
@@ -165,7 +181,12 @@ export function AdminUserManagement() {
 
     setBusyId(userId);
     try {
-      const res = await fetch(`${API_URL}/api/admin/allusers/${userId}`, { method: "DELETE" });
+      const res = await fetch(`${API_URL}/api/admin/allusers/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const json: ActionResponse = await res.json();
 
       if (!res.ok || !json.success) {

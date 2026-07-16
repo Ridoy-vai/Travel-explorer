@@ -1,9 +1,12 @@
-import { AdminOverview } from '@/Components/agency/AdminOverview';
-import React from 'react';
+import { AdminOverview } from '@/Components/admin/AdminOverview';
+import { getUserToken } from '@/lib/session';
+// import React from 'react';
 
-const page = () => {
+const page = async () => {
+    const token = await getUserToken();
+
     return (
-       <AdminOverview/>
+        <AdminOverview token={token} />
     );
 };
 

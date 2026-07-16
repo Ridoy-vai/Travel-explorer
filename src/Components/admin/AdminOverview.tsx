@@ -116,7 +116,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-export function AdminOverview() {
+export function AdminOverview({ token }: { token: string | null }) {
   const [data, setData] = useState<OverviewData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -124,9 +124,14 @@ export function AdminOverview() {
   const fetchOverview = async () => {
     setIsLoading(true);
     setErrorMsg("");
-    console.log("API_URL:", API_URL);
+    // console.log("API_URL:", API_URL);
     try {
-      const res = await fetch(`${API_URL}/api/admin/overview`);
+      const res = await fetch(`${API_URL}/api/admin/overview`, {
+        headers: {
+          // "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const json: OverviewResponse = await res.json();
 
       if (!res.ok || !json.success) {

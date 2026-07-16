@@ -244,7 +244,7 @@ export function MyBookingsPage({ travelerId }: { travelerId: string }) {
                                                     {formatCurrency(b.totalAmount, b.currency)}
                                                 </p>
                                             </div>
-                                            <a href={`/tours/success?session_id=${b.sessionId}`}>
+                                            <a href={`/Packages/success?session_id=${b.sessionId}`}>
                                                 <Button size="sm" variant="tertiary">
                                                     View Invoice
                                                 </Button>
