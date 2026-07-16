@@ -39,7 +39,7 @@ function formatCurrency(amount: number) {
   return amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
-export function AgencyOverviewPage({ agencyId }: { agencyId: string }) {
+export function AgencyOverviewPage({ agencyId, token }: { agencyId: string, token: string | null }) {
   const [data, setData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +65,10 @@ export function AgencyOverviewPage({ agencyId }: { agencyId: string }) {
 
         const res = await fetch(`${BACKEND_BASE}/api/agency/${agencyId}/overview`, {
           cache: "no-store",
+          headers: {
+            // "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (!res.ok) {

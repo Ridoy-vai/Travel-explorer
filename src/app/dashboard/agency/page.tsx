@@ -1,11 +1,14 @@
 import { AgencyOverviewPage } from "@/Components/agency/AgencyOverviewPage";
 import { auth } from "@/lib/auth";
+import { getUserToken } from "@/lib/session";
 import { headers } from "next/headers";
 
 export default async function OverviewPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+  const token = await getUserToken();
+
 
   if (!session?.user?.id) {
     return <p className="text-sm text-danger p-6">Please log in.</p>;
@@ -21,5 +24,5 @@ export default async function OverviewPage() {
     return <p className="text-sm text-danger p-6">Agency profile not found.</p>;
   }
 
-  return <AgencyOverviewPage agencyId={agencyId} />;
+  return <AgencyOverviewPage agencyId={agencyId} token={token} />;
 }

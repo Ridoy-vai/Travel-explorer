@@ -51,7 +51,7 @@ function formatCurrency(amount: number) {
   return amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
-export function AgencyEarningsPage({ agencyId }: { agencyId: string }) {
+export function AgencyEarningsPage({ agencyId, token }: { agencyId: string, token: string | null }) {
   const [data, setData] = useState<EarningsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +63,10 @@ export function AgencyEarningsPage({ agencyId }: { agencyId: string }) {
       try {
         setLoading(true);
         const res = await fetch(`${BACKEND_BASE}/api/agency/${agencyId}/earnings`, {
+          headers: {
+          // "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
           cache: "no-store",
         });
         if (!res.ok) throw new Error(`Request failed: ${res.status}`);

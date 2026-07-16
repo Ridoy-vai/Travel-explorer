@@ -23,7 +23,7 @@ interface Inquiry {
     createdAt: string;
 }
 
-export function AgencyInquiriesPage({ agencyId }: { agencyId: string }) {
+export function AgencyInquiriesPage({ agencyId, token }: { agencyId: string, token: string | null }) {
     const [inquiries, setInquiries] = useState<Inquiry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -34,6 +34,10 @@ export function AgencyInquiriesPage({ agencyId }: { agencyId: string }) {
             setLoading(true);
             const query = filter !== "all" ? `?status=${filter}` : "";
             const res = await fetch(`${BACKEND_BASE}/api/agency/${agencyId}/inquiries${query}`, {
+                headers: {
+                    //   "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
                 cache: "no-store",
             });
             if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -57,7 +61,10 @@ export function AgencyInquiriesPage({ agencyId }: { agencyId: string }) {
         try {
             const res = await fetch(`${BACKEND_BASE}/api/inquiries/${id}/status`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
                 body: JSON.stringify({ status }),
             });
             if (!res.ok) throw new Error("Failed to update status");
@@ -84,11 +91,10 @@ export function AgencyInquiriesPage({ agencyId }: { agencyId: string }) {
                         <button
                             key={s}
                             onClick={() => setFilter(s)}
-                            className={`text-xs px-3 py-1.5 rounded-full border capitalize ${
-                                filter === s
-                                    ? "bg-[#12332E] text-white border-[#12332E]"
-                                    : "border-default-200 text-muted"
-                            }`}
+                            className={`text-xs px-3 py-1.5 rounded-full border capitalize ${filter === s
+                                ? "bg-[#12332E] text-white border-[#12332E]"
+                                : "border-default-200 text-muted"
+                                }`}
                         >
                             {s}
                         </button>

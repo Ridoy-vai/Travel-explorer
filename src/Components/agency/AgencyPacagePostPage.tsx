@@ -49,10 +49,10 @@ const columns = [
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-export default function AgencyPackagesManager() {
+export default function AgencyPackagesManager({ token }: { token: string | null }) {
     const { data: session } = authClient.useSession();
     const user = session?.user;
-    console.log("Logged-in user: vvvvvv", user);
+    // console.log("Logged-in user: vvvvvv", user);
     const agencyId = user?.id; // আপনার dynamic agencyId বসাবেন
     // --- সব state আগে ডিক্লেয়ার করা হয়েছে, useEffect এর আগে ---
     const [packages, setPackages] = useState<TourPackage[]>([]);
@@ -80,9 +80,12 @@ export default function AgencyPackagesManager() {
                 limit: rowsPerPage.toString(),
             });
 
-            const res = await fetch(
-                `${API_BASE}/api/agency/packages?${params}`
-            );
+            const res = await fetch(`${API_BASE}/api/agency/packages?${params}`, {
+                headers: {
+                    //   "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
             const result = await res.json();
 
             if (result.success) {
@@ -119,7 +122,10 @@ export default function AgencyPackagesManager() {
                 `${API_BASE}/api/agency/packages/${id}/status`,
                 {
                     method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
                     body: JSON.stringify({
                         newStatus: newStatus,
                         userid: user?.id, // শুধু এটাই যথেষ্ট, backend নিজে DB থেকে status verify করবে
@@ -151,6 +157,10 @@ export default function AgencyPackagesManager() {
         setActionLoadingId(id);
         try {
             const res = await fetch(`${API_BASE}/api/agency/packages/${id}`, {
+                headers: {
+                    // "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
                 method: "DELETE",
             });
             const result = await res.json();

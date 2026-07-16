@@ -23,7 +23,7 @@ interface BookingSummaryRow {
   };
 }
 
-export function AgencyBookingsSummaryTable({ agencyId }: { agencyId: string }) {
+export function AgencyBookingsSummaryTable({ agencyId, token }: { agencyId: string, token: string | null }) {
   const [rows, setRows] = useState<BookingSummaryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,9 +39,13 @@ export function AgencyBookingsSummaryTable({ agencyId }: { agencyId: string }) {
     async function fetchSummary() {
       try {
         setLoading(true);
-        const res = await fetch(
-          `${BACKEND_BASE}/api/agency/${agencyId}/bookings-summary`,
-          { cache: "no-store" }
+        const res = await fetch(`${BACKEND_BASE}/api/agency/${agencyId}/bookings-summary`, {
+          cache: "no-store",
+          headers: {
+            // "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
         );
         if (!res.ok) throw new Error(`Request failed: ${res.status}`);
         const json = await res.json();

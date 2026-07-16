@@ -1,5 +1,7 @@
 import AgencyPackagesManager from "@/Components/agency/AgencyPacagePostPage";
+import { getUserToken } from "@/lib/session";
 
-export default function PostPage() {
-  return <AgencyPackagesManager />;
+export default async function PostPage() {
+  const token = await getUserToken();
+  return <AgencyPackagesManager token={token}/>;
 }
